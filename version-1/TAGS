@@ -1,0 +1,936 @@
+
+archive.c,225
+#define MAX_BUF 56,1618
+int do_archive(66,1883
+int do_ping(109,3200
+static int archive_it(131,3804
+static int archive_file(178,5571
+static int archive_dir(256,8506
+static FILE *open_if_changed(open_if_changed269,8820
+
+block.c,393
+void db_block_add(40,1097
+DBBlock *db_block_fetch(db_block_fetch66,1770
+void db_block_to_stream(85,2084
+void db_block_to_stream_no_data(97,2328
+DBBlock *db_block_from_stream(db_block_from_stream112,2737
+DBBlock *db_block_from_stream_no_data(db_block_from_stream_no_data132,3359
+DBBlock *db_block_new(db_block_new151,3910
+void db_block_free(161,4018
+void db_block_display(172,4173
+
+checksum.c,487
+#define DEBUG_WCSUM 36,1075
+#define CHAR4_TO_INT32(47,1473
+#define M16 48,1552
+guint32 WCsum_get(51,1623
+guint32 WCsum_update(74,2146
+#define MIN_BUF_LEN 91,2653
+void WCsum_make_hash(100,3009
+static void WCsum_make_hash_sub(119,3643
+static int WCsum_buffer_update(184,5940
+static void WCsum_verify(203,6349
+SCsumPtr SCsum_buffer(224,7016
+#define SCsum_chunk_size 235,7246
+void SCsum_file(237,7277
+int SCsum_match(263,7956
+int SCsum_cmp(294,8856
+void SCsum_print(304,9055
+
+cleanup.c,126
+int cleanup_got_literal=39,1227
+static int cleanup_pid 40,1254
+pid_t cleanup_child_pid 42,1283
+void _exit_cleanup(49,1374
+
+compress.c,148
+IOSBuf *do_compress(do_compress36,1012
+IOSBuf *do_decompress(do_decompress68,2020
+void crypt_test(105,3164
+static void do_crypt_test(131,7503
+
+constants.c,135
+void const_put_string(31,916
+char *const_get_string(const_get_string56,1542
+void const_put_int(81,2180
+int const_get_int(101,2685
+
+coprocess.c,293
+# define NONBLOCK_FLAG 55,1604
+# define NONBLOCK_FLAG 57,1658
+# define NONBLOCK_FLAG 59,1697
+static void set_nonblocking(66,1924
+static void set_blocking(83,2298
+static int fd_pair(102,2634
+static void print_child_argv(122,2868
+static pid_t piped_child(162,4083
+pid_t do_cmd(232,6192
+
+covering.c,259
+GPtrArray *cover_new(cover_new41,1207
+void cover_update_remote(70,2174
+static void cover_hash(99,3181
+static void cover_complete_cover(130,4268
+static gint block_compare_by_offset(191,6607
+void cover_fill_block(211,7175
+void cover_save_local(247,8345
+
+cryptar-db.c,579
+enum actions 47,1272
+        kFind_By_ID,48,1287
+        kShow_All_IDs,49,1308
+        kShow_All50,1331
+static int the_database 53,1353
+static int the_action 54,1383
+typedef void *(*FetchFunc)FetchFunc55,1411
+static FetchFunc the_fetch_func 56,1447
+typedef void(*DisplayFunc)DisplayFunc57,1487
+static DisplayFunc the_display_func 58,1523
+char *the_key the_key59,1567
+int main(62,1591
+static struct option long_options[long_options97,2482
+static int parse_cdb_options(104,2691
+void cdb_usage(208,7083
+static void find_by_id(225,7734
+void display_all(241,8073
+
+cryptar.c,30
+void finish_transfer(33,1067
+
+daemon.c,47
+#define MAX_BUF 35,989
+int do_daemon(49,1125
+
+db_misc.c,877
+void db_error_exit(47,1359
+static char *database_names[database_names58,1543
+static DB *database_ptrs[database_ptrs67,1719
+static int db_init 68,1760
+void db_open(72,1787
+void db_close(85,2072
+void db_close_all(99,2352
+static DB *open_db(open_db120,3005
+DB *db_ptr(db_ptr182,5148
+guint32 db_get_next_index(190,5254
+guint32 db_get_key_int(252,7266
+void db_put_key_int(266,7505
+void db_open_client_dbs(282,7815
+int db_open_server_dbs(296,8010
+void db_put(307,8249
+void db_get(338,9135
+void db_delete(370,10079
+DBC *db_curs_begin(db_curs_begin395,10743
+int db_curs_next(414,11169
+void db_curs_end(447,12095
+static char *archive_dir_name(archive_dir_name464,12479
+char *server_db_name(server_db_name491,13308
+char *client_db_name(client_db_name498,13380
+static char *generic_db_name(generic_db_name505,13452
+static char *db_name(db_name523,13867
+
+encryption.c,542
+typedef struct crypto_instance 38,1273
+	int cipher_idx;39,1306
+	int hash_idx;40,1323
+	int prng_idx;41,1338
+	int ivsize;42,1353
+	int ks;43,1366
+	unsigned long hashkeylen;59,1928
+	char hashkey[hashkey60,1955
+	prng_state prng;61,1985
+} CryptoInstance;62,2003
+CryptoInstance *g_crypto g_crypto64,2022
+void init_crypto(69,2136
+void print_key(157,4653
+void string_to_key(175,5027
+void set_key(192,5410
+void generate_random_key(211,5817
+IOSBuf *encrypt(encrypt232,6284
+IOSBuf *decrypt(decrypt288,7810
+gint block_size(344,9434
+
+env.c,265
+void setup_env(50,1216
+static void setup_config_dir(62,1393
+static char *get_config_dir_name(get_config_dir_name89,2282
+static char *config_dir;config_dir112,2929
+static void set_config_dir(114,2955
+static const char *get_config_dir(get_config_dir122,3063
+
+extract.c,122
+int do_extract(44,1239
+static int extract_it(75,1997
+static int extract_file(108,3167
+static int extract_dir(141,4372
+
+fileio.c,593
+#define MIN(37,1057
+struct map_struct 41,1120
+	char *p;p42,1140
+	int fd,43,1150
+	int fd,p_size,43,1150
+	int fd,p_size,p_len;43,1150
+	OFF_T file_size,44,1172
+	OFF_T file_size, p_offset,44,1172
+	OFF_T file_size, p_offset, p_fd_offset;44,1172
+#define SPARSE_WRITE_SIZE 48,1218
+#define CHUNK_SIZE 49,1251
+#define MAX_MAP_SIZE 50,1280
+static char last_byte;52,1313
+static int last_sparse;53,1336
+int sparse_end(56,1386
+static int write_sparse(67,1541
+int write_file(101,2075
+struct map_struct *map_file(map_file131,2697
+char *map_ptr(map_ptr148,2996
+void unmap_file(235,5488
+
+filename.c,513
+DBFile *db_filename_new(db_filename_new43,1100
+void db_filename_free(55,1308
+DBFile *db_filename_add(db_filename_add66,1473
+DBFile *db_filename_fetch(db_filename_fetch92,2030
+DBFile *db_filename_from_stream(db_filename_from_stream111,2412
+DBFile *db_filename_fetch_by_id(db_filename_fetch_by_id127,2729
+void db_filename_display(137,2907
+DBF_curs *db_filename_curs_begin(db_filename_curs_begin149,3206
+DBFile *db_filename_curs_next(db_filename_curs_next157,3291
+void db_filename_curs_end(181,3832
+
+hash.c,671
+#define GATHER_HASH_STATISTICS 48,1590
+typedef GSList *HashBucket;HashBucket50,1624
+typedef struct hashentry 52,1653
+        guint32 key;53,1680
+        guint32 value;54,1701
+} HashEntry;55,1724
+static HashBucket *hash_table hash_table59,1828
+static GMemChunk *entry_pool entry_pool60,1866
+static const guint32 hash_size 61,1903
+static guint32 hash_entries;64,1975
+static guint32 hash_collisions;65,2004
+void hash_create(75,2280
+static void hash_clear(95,2695
+int hash_find(115,3129
+static int hash_find_comparator(141,3828
+void hash_destroy(159,4237
+void hash_insert(178,4647
+static void hash_verify(210,5661
+static void hash_verify_entry(227,6028
+
+io.c,682
+static int ignore_input 47,1287
+static int ignore_output 48,1370
+static IOSBuf *ios_write_buf ios_write_buf49,1455
+static IOSBuf *ios_read_buf ios_read_buf50,1492
+static GIOChannel *io_chan_in io_chan_in52,1529
+static GIOChannel *io_chan_out io_chan_out53,1567
+IOSBuf *io_write_buf(io_write_buf65,2023
+void io_write_reg(77,2213
+IOSBuf *io_read_buf(io_read_buf93,2675
+void io_send_ios(103,2848
+void io_no_more_input(123,3434
+void io_no_more_output(132,3568
+void io_register_fd_pair(142,3715
+static gboolean io_output_handler(175,4805
+#define BUF_SIZE 223,6479
+static gboolean io_input_handler(231,6693
+void io_close_io(281,8315
+static int io_cond_ok(294,8601
+
+ios.c,1011
+#define MIN(35,975
+struct ios_buf 48,1206
+        char *buf;buf49,1223
+        guint32 len;50,1242
+        guint32 read_ptr;51,1298
+        guint32 alloc_len;52,1324
+#define IOS_MIN_SIZE 56,1395
+#define GROWTH_FACTOR 57,1421
+GPtrArray *ios_tracker ios_tracker59,1470
+IOSBuf *ios_new(ios_new63,1581
+IOSBuf *ios_new_copy(ios_new_copy82,1969
+void ios_free(94,2170
+static void ios_free_debug(109,2373
+void ios_grow(127,2842
+void ios_append(148,3331
+void ios_append_ios(164,3732
+void *ios_at(ios_at174,3908
+void *ios_read(ios_read184,4134
+void ios_reset(199,4425
+void ios_append_int8(208,4530
+void ios_append_int16(217,4671
+void ios_append_int32(227,4840
+void ios_append_string(237,5009
+guint16 ios_int16_at(251,5255
+guint16 ios_read_int16(262,5444
+guint32 ios_int32_at(275,5699
+guint32 ios_read_int32(286,5888
+char *ios_read_str(ios_read_str299,6143
+void *ios_buffer(ios_buffer313,6433
+guint32 ios_buffer_size(322,6523
+void ios_set_buffer(331,6630
+void ios_copy_ios(343,6823
+
+key.c,367
+DBKey *db_key_new(db_key_new43,1084
+void db_key_free(55,1268
+DBKey *db_key_add(db_key_add66,1417
+DBKey *db_key_fetch(db_key_fetch93,1974
+DBKey *db_key_from_stream(db_key_from_stream111,2348
+void db_key_display(127,2653
+DBK_curs *db_key_curs_begin(db_key_curs_begin139,2930
+DBKey *db_key_curs_next(db_key_curs_next147,3005
+void db_key_curs_end(170,3505
+
+list.c,60
+int do_list(37,1042
+static void list_display_file(58,1632
+
+log.c,246
+enum log_entity 29,879
+        kLog_none,30,897
+        kLog_client,31,916
+        kLog_server32,937
+static enum log_entity log_entity_flag 35,961
+void log_am_client(38,1015
+void log_am_server(46,1098
+void log_default_log_handler 57,1273
+
+main.c,622
+#define UNUSED(56,1508
+static GMainLoop *main_event_loop main_event_loop66,1779
+static int main_loop_running 70,1976
+static int start_remote_and_run(82,2325
+static int do_server_init(109,3044
+static RETSIGTYPE sig_quit_handler(134,3746
+static RETSIGTYPE sigchld_handler(140,3838
+static RETSIGTYPE cryptar_panic_handler(162,4432
+static void setup_signals(187,4945
+#define SIGNAL_CAST 199,5301
+int main(215,5627
+void run_main_loop(296,8229
+void cycle_main_loop(313,8706
+void quit_main_loop(325,8917
+int is_main_loop_running(334,9027
+GMainLoop *main_loop(main_loop341,9095
+static int do_self_test(349,9180
+
+option.c,310
+        kDaemon 34,964
+        kSelfTest,36,1011
+        kLast 38,1037
+static struct option long_options[long_options46,1178
+static int num_args 63,1729
+int parse_options(67,1865
+static void show_flags(208,7373
+static int flags_consistent(228,8169
+int confirm_arguments(254,9121
+void usage(268,9388
+
+options.c,343
+GPtrArray *g_args g_args27,863
+static int int_option_array[int_option_array34,1089
+static char *char_option_array[char_option_array35,1136
+void options_init(38,1189
+void set_int_option(47,1360
+int int_option(56,1511
+void set_char_option(64,1633
+char *char_option(char_option73,1790
+char *char_option_safe(char_option_safe81,1918
+
+prefs.c,637
+#define NULL 35,1017
+typedef struct file_contents 41,1080
+        char *buf;buf42,1111
+        guint len;43,1130
+} FileContents;44,1149
+typedef struct preference 46,1166
+        char *name;name47,1194
+        char *value;value48,1214
+} Preference;49,1235
+GTree *prefs prefs51,1250
+#define YESNO_SIZE 64,1566
+void do_create(68,1644
+#define BUFSIZE 122,4106
+static char *get_pref_from_user(get_pref_from_user123,4128
+char *pref_get_value(pref_get_value142,4652
+int pref_get_int_value(160,5096
+char *pref_get_value_silent_default(pref_get_value_silent_default170,5271
+int pref_get_int_value_silent_default(190,5710
+
+protocol.c,1341
+enum proto_command 85,2654
+        cmd_Hello,86,2675
+        cmd_HelloAck,89,2805
+        cmd_Bye,93,3002
+        cmd_PutBlock,96,3111
+        cmd_PutBlockAck,99,3225
+        cmd_GetBlock,104,3479
+        cmd_GetBlockAck 107,3590
+int read_and_dispatch_commands(113,3716
+static int read_and_dispatch_one_command(134,4310
+void proto_print_command(193,6148
+void send_hello(225,7089
+void send_hello_ack(247,7667
+void send_bye(268,8210
+void send_put_block(289,8692
+void send_put_ack(312,9353
+void send_get_block(333,9888
+void send_get_ack(356,10449
+static int receive_hello(379,11027
+static int receive_hello_ack(401,11604
+static int receive_bye(422,12240
+static int receive_put_block(460,13581
+static int receive_put_ack(487,14294
+static int receive_get_block(506,14780
+static int receive_get_ack(525,15266
+static int accept_hello(548,15867
+static int accept_hello_ack(604,17702
+static void do_accept_hello_ack(647,19055
+static int accept_put_block(678,20102
+static int accept_put_ack(705,20792
+static int accept_get_block(760,22830
+static void send_bad_get_ack(791,23699
+static int accept_get_ack(807,24038
+static void accept_get_ack_block(834,24863
+static void install_block(871,26080
+static void accept_get_ack_block_list(910,27448
+static void start_archive(954,29111
+static void start_extract(976,29584
+
+queue.c,87
+Queue *new_queue(new_queue27,843
+void enqueue(38,959
+void *dequeue(dequeue48,1115
+
+remote.c,263
+void db_archive_add(36,987
+DBArchive *db_archive_fetch(db_archive_fetch59,1519
+DBArchive *db_archive_from_stream(db_archive_from_stream76,1857
+DBArchive *db_archive_new(db_archive_new99,2450
+void db_archive_free(108,2565
+void db_archive_display(118,2698
+
+requests.c,196
+void request_block_list(42,1152
+void send_block_list(57,1462
+static IOSBuf *block_list_to_stream(block_list_to_stream90,2402
+GPtrArray *block_list_from_stream(block_list_from_stream113,3007
+
+sum.c,562
+typedef struct sparse_sums 43,1322
+        guint32 offset;44,1351
+        HashTable *weak;weak45,1375
+        HashTable *strong;strong46,1400
+} SparseSums;51,1497
+typedef struct dense_sum 53,1512
+        int not_implemented_yet;54,1539
+} DenseSum;55,1572
+SparseSums *sparse_sums_from_file(sparse_sums_from_file59,1587
+SparseSums *sparse_sums_from_db(sparse_sums_from_db69,1726
+DenseSum *init_dense_sum(init_dense_sum79,1863
+int next_dense_sum(89,1993
+int jump_dense_sum(97,2067
+guint32 weak_checksum(106,2169
+guint32 strong_checksum(116,2281
+
+summary.c,373
+void db_summary_add(45,1181
+DBSummary *db_summary_fetch(db_summary_fetch69,1767
+static void db_summary_to_stream(88,2181
+DBSummary *db_summary_from_stream(db_summary_from_stream109,2873
+DBSummary *db_summary_fetch_last(db_summary_fetch_last133,3701
+DBSummary *db_summary_new(db_summary_new148,4186
+void db_summary_free(182,5334
+void db_summary_display(191,5436
+
+syscall.c,418
+#define CHECK_RO 48,1239
+int do_unlink(50,1353
+int do_symlink(57,1460
+int do_lchown(65,1595
+int do_mknod(73,1762
+int do_rmdir(81,1915
+int do_open(88,2026
+int do_chmod(105,2392
+int do_rename(113,2527
+void trim_trailing_slashes(121,2660
+int do_mkdir(140,3041
+int do_mkstemp(171,3963
+int do_stat(193,4443
+int do_lstat(203,4596
+int do_fstat(213,4741
+OFF_T do_lseek(222,4862
+void *do_mmap(do_mmap233,5054
+
+util.c,148
+#define MAXPATHLEN 44,1280
+static char curr_dir[curr_dir47,1312
+char *push_dir(push_dir52,1479
+int pop_dir(83,2032
+void clean_fname(102,2203
+
+workticket.c,803
+#define WT_MAX_QUEUE_SIZE 55,1799
+static GSList *work_list work_list63,2085
+static char more_work 70,2351
+WorkTicket *new_work_ticket(new_work_ticket86,2776
+void wt_insert(100,3010
+void wt_remove(120,3635
+int wt_more(134,3961
+int wt_more_to_come(148,4414
+void wt_working(155,4469
+WorkTicket *wt_find(wt_find164,4581
+static gint find_wt_by_file_id(182,5022
+DBBlock *wt_find_block(wt_find_block196,5337
+void wt_finish(219,5875
+void wt_process_queue(246,6663
+#define desired_queue_size 257,6894
+static void wt_do_work(261,6967
+static void wt_send_blocks(307,8160
+static void wt_send_block_requests(351,9831
+static int wt_check_if_done(380,10736
+static void wt_count_remaining(390,10885
+int wt_queue_full(409,11290
+void wt_check_for_orphan_work(420,11576
+void wt_assert(440,12116
+
+archive.h,29
+#define __ARCHIVE_H__22,819
+
+block.h,469
+#define __LOCAL__23,826
+typedef struct db_block 61,2107
+        guint32 local_id;63,2170
+        guint8 version;66,2356
+        guint32 offset;67,2380
+        guint16 length;68,2450
+        guint32 weak_checksum;73,2779
+        SCsum strong_checksum;74,2810
+        guint32 remote_id;77,2880
+        void *data;data82,3195
+        gboolean block_queued;85,3308
+        gboolean block_acked;86,3339
+        gboolean in_new_cover;87,3369
+} DBBlock;88,3400
+
+byteorder.h,327
+#undef CAREFUL_ALIGNMENT20,783
+#define CAREFUL_ALIGNMENT 25,910
+#define CAREFUL_ALIGNMENT 29,972
+#define CVAL(32,1008
+#define PVAL(33,1062
+#define SCVAL(34,1110
+#define SVAL(38,1185
+#define IVAL(39,1244
+#define SSVALX(40,1304
+#define SIVALX(41,1384
+#define SIVAL(42,1467
+#define IVAL(50,1751
+#define SIVAL(51,1811
+
+checksum.h,137
+#define __CHECKSUM_H__23,863
+#define SCsumLength 34,988
+typedef guchar SCsum[SCsum35,1026
+typedef guchar *SCsumPtr;SCsumPtr36,1061
+
+cleanup.h,58
+#define __CLEANUP_H__23,820
+#define exit_cleanup(26,901
+
+compress.h,30
+#define __COMPRESS_H__22,823
+
+config.h,2964
+#define HAVE_CONNECT 4,139
+#define HAVE_GETTIMEOFDAY_TZ 9,284
+#define HAVE_SOCKETPAIR 12,371
+#define GETGROUPS_T 16,512
+#define HAVE_ALLOCA_H 19,592
+#define HAVE_ARPA_INET_H 22,673
+#define HAVE_ARPA_NAMESER_H 25,760
+#define HAVE_ASPRINTF 28,841
+#define HAVE_C99_VSNPRINTF 34,912
+#define HAVE_CHMOD 37,989
+#define HAVE_CHOWN 40,1058
+#define HAVE_CONNECT 46,1167
+#define HAVE_CTYPE_H 49,1243
+#define HAVE_DIRENT_H 52,1342
+#define HAVE_ERRNO_DECL 55,1373
+#define HAVE_FCHMOD 58,1448
+#define HAVE_FCNTL_H 61,1523
+#define HAVE_FNMATCH 64,1553
+#define HAVE_FSTAT 67,1624
+#define HAVE_GETADDRINFO 70,1699
+#define HAVE_GETCWD 73,1775
+#define HAVE_GETNAMEINFO 76,1851
+#define HAVE_GETTIMEOFDAY_TZ 79,1885
+#define HAVE_GLOB 82,1963
+#define HAVE_GLOB_H 85,2035
+#define HAVE_GRP_H 88,2108
+#define HAVE_INET_NTOP 91,2181
+#define HAVE_INET_PTON 94,2258
+#define HAVE_INTTYPES_H 97,2339
+#define HAVE_LCHOWN 100,2414
+#define HAVE_LIBPOPT 112,2734
+#define HAVE_LIBRESOLV 115,2816
+#define HAVE_LINK 121,2975
+#define HAVE_LONGLONG 124,3002
+#define HAVE_MALLINFO 127,3077
+#define HAVE_MALLOC_H 130,3155
+#define HAVE_MCHECK_H 133,3233
+#define HAVE_MEMMOVE 136,3307
+#define HAVE_MEMORY_H 139,3384
+#define HAVE_MKNOD 142,3456
+#define HAVE_MTRACE 145,3526
+#define HAVE_NETDB_H 151,3700
+#define HAVE_READLINK 157,3807
+#define HAVE_REMSH 160,3868
+#define HAVE_SECURE_MKSTEMP 163,3896
+#define HAVE_SETGROUPS 166,3978
+#define HAVE_SETSID 169,4052
+#define HAVE_SNPRINTF 175,4162
+#define HAVE_SOCKADDR_STORAGE 178,4236
+#define HAVE_SOCKETPAIR 181,4275
+#define HAVE_STDINT_H 184,4355
+#define HAVE_STDLIB_H 187,4433
+#define HAVE_STRCASECMP 190,4510
+#define HAVE_STRCHR 193,4585
+#define HAVE_STRDUP 196,4656
+#define HAVE_STRERROR 199,4729
+#define HAVE_STRFTIME 202,4804
+#define HAVE_STRINGS_H 205,4883
+#define HAVE_STRING_H 208,4962
+#define HAVE_STRPBRK 217,5188
+#define HAVE_STRUCT_STAT_ST_RDEV 220,5266
+#define HAVE_SYS_FCNTL_H 226,5463
+#define HAVE_SYS_IOCTL_H 232,5634
+#define HAVE_SYS_PARAM_H 241,5910
+#define HAVE_SYS_SELECT_H 244,5995
+#define HAVE_SYS_SOCKET_H 247,6081
+#define HAVE_SYS_STAT_H 250,6165
+#define HAVE_SYS_SYSCTL_H 253,6249
+#define HAVE_SYS_TIME_H 256,6333
+#define HAVE_SYS_TYPES_H 259,6416
+#define HAVE_SYS_UNISTD_H 262,6501
+#define HAVE_SYS_WAIT_H 265,6585
+#define HAVE_UNISTD_H 268,6665
+#define HAVE_UTIMBUF 274,6735
+#define HAVE_UTIME 277,6806
+#define HAVE_UTIMES 280,6876
+#define HAVE_UTIME_H 283,6951
+#define HAVE_UTIME_NULL 286,7049
+#define HAVE_VSNPRINTF 289,7127
+#define HAVE_WAIT4 292,7200
+#define HAVE_WAITPID 295,7271
+#define INET6 298,7323
+#define RETSIGTYPE 307,7486
+#define RSYNC_PATH 310,7553
+#define RSYNC_RSH 313,7606
+#define RSYNC_VERSION 316,7659
+#define SIZEOF_INT 319,7740
+#define SIZEOF_LONG 322,7813
+#define SIZEOF_SHORT 325,7888
+#define STDC_HEADERS 328,7962
+#define TIME_WITH_SYS_TIME 331,8057
+#define _FILE_OFFSET_BITS 338,8322
+#define _GNU_SOURCE 341,8417
+
+constants.h,31
+#define __CONSTANTS_H__22,816
+
+coprocess.h,31
+#define __COPROCESS_H__22,828
+
+covering.h,30
+#define __COVERING_H__22,823
+
+cryptar.h,563
+#define __CRYPTAR_H__23,898
+#define OFF_T 30,1003
+#define STRUCT_STAT 31,1025
+#define OFF_T 33,1065
+#define STRUCT_STAT 34,1085
+#define INO64_T 36,1124
+#define DEV64_T 37,1146
+struct file_struct 40,1183
+	unsigned flags;41,1204
+	time_t modtime;42,1221
+	OFF_T length;43,1238
+	mode_t mode;44,1253
+	INO64_T inode;46,1268
+	DEV64_T dev;48,1320
+	DEV64_T rdev;51,1388
+	uid_t uid;52,1403
+	gid_t gid;53,1415
+	char *basename;basename54,1427
+	char *dirname;dirname55,1444
+	char *basedir;basedir56,1460
+	char *link;link57,1476
+	char *sum;sum58,1489
+
+daemon.h,28
+#define __DAEMON_H__22,817
+
+db_misc.h,264
+#define __DB_MISC__22,823
+enum databases 29,881
+        kFilenames 30,898
+        kSummary,31,922
+        kBlocks,32,940
+        kArchive,33,957
+        kConstants,34,975
+        kServerConstants,35,995
+        kKeys,36,1021
+        kNumDatabases38,1037
+
+encryption.h,126
+#define __CRYPT_H__22,839
+#define DEBUG_CRYPTO 24,860
+#define RANDOM_KEYSIZE 25,883
+typedef unsigned char *Key;Key32,974
+
+env.h,25
+#define __ENV_H__21,807
+
+errcode.h,589
+#define RERR_SYNTAX 25,906
+#define RERR_PROTOCOL 26,966
+#define RERR_FILESELECT 27,1029
+#define RERR_UNSUPPORTED 28,1109
+#define RERR_STARTCLIENT 29,1179
+#define RERR_SOCKETIO 31,1256
+#define RERR_FILEIO 32,1313
+#define RERR_STREAMIO 33,1368
+#define RERR_MESSAGEIO 34,1442
+#define RERR_IPC 35,1512
+#define RERR_SIGNAL 37,1569
+#define RERR_WAITCHILD 38,1649
+#define RERR_MALLOC 39,1720
+#define RERR_PARTIAL 40,1795
+#define RERR_TIMEOUT 42,1851
+#define RERR_CMD_FAILED 55,2286
+#define RERR_CMD_KILLED 56,2314
+#define RERR_CMD_RUN 57,2342
+#define RERR_CMD_NOTFOUND 58,2367
+
+extract.h,29
+#define __EXTRACT_H__22,819
+
+fileio.h,128
+#define __FILEIO_H__22,853
+#define OFF_T 27,916
+#define STRUCT_STAT 28,938
+#define OFF_T 30,978
+#define STRUCT_STAT 31,998
+
+filename.h,210
+#define __FILENAME__23,825
+typedef DBC DBF_curs;30,899
+typedef struct db_file 32,922
+        char *filename;filename33,947
+        guint32 file_id;34,997
+        guint8 version;35,1022
+} DBFile;36,1046
+
+hash.h,26
+#define __HASH_H__22,815
+
+io.h,24
+#define __IO_H__23,815
+
+ios.h,63
+#define __IOS_H__23,817
+typedef struct ios_buf IOSBuf;27,855
+
+key.h,190
+#define __KEY__23,810
+typedef DBC DBK_curs;30,879
+typedef struct db_key 32,902
+        guint key_id;33,926
+        char *key;key34,976
+        guint8 version;35,1047
+} DBKey;36,1071
+
+list.h,26
+#define __LIST_H__22,813
+
+log.h,25
+#define __LOG_H__23,812
+
+main.h,26
+#define __MAIN_H__22,802
+
+option.h,28
+#define __OPTION_H__23,823
+
+options.h,881
+#define __OPTIONS_H__22,821
+enum int_options 27,864
+        kOption_backup,28,883
+        kOption_create,29,907
+        kOption_extract,30,931
+        kOption_list,31,956
+        kOption_server,32,978
+        kOption_ping,33,1002
+        kOption_verbose,34,1024
+        kOption_dryrun,35,1049
+        kOption_read_only,36,1073
+        kOption_list_only,37,1100
+        kOption_self_test,39,1150
+        kNum_int_options43,1218
+enum char_options 51,1438
+        kArchive_target,52,1458
+        kBackup_pattern,53,1529
+        kExtract_pattern,54,1607
+        kList_pattern,55,1664
+        kNum_char_options58,1744
+#define VERBOSE_NONE	62,1815
+#define VERBOSE_FILES	63,1839
+#define VERBOSE_PROTOCOL 64,1898
+#define VERBOSE_IO	65,1953
+#define VERBOSE_IO_SUM	66,1998
+#define VERBOSE_FLOW	67,2047
+#define VERBOSE_FLOW_PLUS 68,2102
+#define VERBOSE_DB	69,2173
+
+prefs.h,376
+#define __PREFS_H__23,821
+#define CONFIG_DIR_VARNAME 28,862
+#define CONFIG_DIR 29,910
+#define PREF_BLOCK_LENGTH 33,1015
+#define PREF_DAEMON_COMMAND 34,1056
+#define PREF_TO_ARCHIVE 35,1101
+#define PREF_ALWAYS_COMPARE_HASH 36,1138
+#define PREF_ARCHIVE_ID 37,1193
+#define PREF_ARCHIVE_PASS 38,1230
+#define PREF_MUST_CREATE 39,1271
+#define DEFAULT_BLOCK_LENGTH 42,1337
+
+protocol.h,1621
+#define __PROTOCOL_H__21,822
+enum ProtoHelloError 29,884
+        phe_OK 30,907
+        phe_Not_now,31,927
+        phe_Disk_full,32,948
+        phe_Bad_pass,33,971
+        phe_Unknown34,1034
+enum ProtoByeError 37,1058
+        pbe_OK 38,1079
+        pbe_Disk_full,39,1099
+        pbe_Going_down,40,1122
+        pbe_Uknown41,1146
+typedef struct proto_hello 45,1170
+        guint8 version;46,1199
+        guint32 archive_id;47,1223
+        guint32 archive_pass;48,1310
+        guint8 create_archive;52,1566
+        char *message;message57,1856
+} ProtoHello;58,1910
+typedef struct proto_hello_ack 60,1925
+        guint8 version;61,1958
+        enum ProtoHelloError error;62,1982
+        guint32 archive_id;63,2018
+        char *message;message64,2102
+} ProtoHelloAck;65,2156
+typedef struct proto_bye 67,2174
+        guint8 version;68,2201
+        enum ProtoByeError error;69,2225
+} ProtoBye;70,2259
+typedef struct proto_put_block 73,2330
+        guint32 file_id;74,2363
+        guint32 block_id;75,2388
+        struct ios_buf *ios;ios76,2414
+} ProtoPutBlock;77,2443
+typedef struct proto_put_block_ack 79,2461
+        guint32 file_id;80,2498
+        guint32 block_id;81,2523
+        guint32 archive_id;82,2549
+} ProtoPutBlockAck;83,2577
+typedef struct proto_get_block 85,2598
+        guint32 file_id;86,2631
+        guint32 block_id;87,2656
+        guint32 archive_id;88,2682
+} ProtoGetBlock;89,2710
+typedef struct proto_get_block_ack 91,2728
+        guint32 file_id;92,2765
+        guint32 block_id;93,2790
+        struct ios_buf *ios;ios94,2816
+} ProtoGetBlockAck;95,2868
+
+queue.h,106
+#define __QUEUE_H__23,816
+typedef struct queue 27,856
+        GSList *head;head28,879
+} Queue;29,901
+
+remote.h,186
+#define __REMOTE__23,821
+typedef struct db_archive 27,858
+        guint32 archive_id;28,886
+        guint8 version;29,914
+        struct ios_buf *ios;ios30,938
+} DBArchive;31,967
+
+requests.h,30
+#define __REQUESTS_H__22,823
+
+sum.h,25
+#define __SUM_H__21,807
+
+summary.h,673
+#define __SUMMARY__23,823
+typedef struct db_summary 32,916
+        guint32 summary_id;33,944
+        guint8 version;34,994
+        guint32 file_id;35,1018
+        guint32 summary_time;36,1043
+        guint32 mod_time;37,1073
+        guint32 file_length;38,1099
+        guint32 inode_number;39,1128
+        guint32 permissions;40,1158
+        SCsum file_sha1;41,1187
+        SCsum block_list_sha1;42,1212
+        guint32 block_list_length;43,1243
+        guint32 block_list_remote_id;44,1278
+} DBSummary;45,1316
+typedef struct signature 47,1330
+        DBSummary *summary;summary48,1357
+        GPtrArray *blockList;blockList49,1423
+} Signature;50,1483
+
+syscall.h,131
+#define __SYSCALL_H__22,846
+#define OFF_T 30,953
+#define STRUCT_STAT 31,975
+#define OFF_T 33,1015
+#define STRUCT_STAT 34,1035
+
+util.h,26
+#define __UTIL_H__22,813
+
+workticket.h,688
+#define __WORKTICKET_H__23,831
+enum wt_actions 34,949
+        wt_Archive,35,967
+        wt_Extract36,987
+enum wt_status 39,1010
+        wt_New,40,1027
+        wt_AwaitingBlockList,41,1043
+        wt_SendingBlocks,42,1073
+        wt_SendingBlockRequests,43,1124
+        wt_AwaitingBlockConfirms,44,1176
+        wt_AwaitingBlockListConfirm45,1210
+typedef struct work_ticket 49,1251
+        struct db_file *dbf;dbf50,1280
+        struct signature sig;51,1309
+        guint32 num_blocks_moved;52,1339
+        guint32 next_block_to_queue;61,1941
+        enum wt_status status;62,1978
+        FILE *fp;fp63,2009
+        enum wt_actions action;64,2027
+} WorkTicket;65,2059
+
+options-def.h,0

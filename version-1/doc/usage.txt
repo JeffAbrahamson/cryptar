@@ -1,0 +1,138 @@
+
+CRYPTAR(1)
+
+NAME
+	cryptar - A cryptographic archiving program
+
+SYNOPSIS
+	cryptar [options] archive patterns
+
+DESCRIPTION
+	This manual page documents cryptar, a cryptographic backup
+	program that does not trust its repository to be sufficiently
+	secure to prevent intruders reading or even modifying the data
+	it stores.  It can prevent the first and detect the second.
+	Nothing (possible) can prevent the store from losing or
+	modifying the data stored, but these events can at least be
+	detected.
+
+	Cryptar is an implementation of the cryptar algorithm, which in turn
+	is based on the rsync algorithm.  By propitious use of a split
+	database, it stores backup data on a remote server in encrypted form,
+	maintaining sufficient signature information in the local database
+	that it can compute efficient differences between the current versions
+	of files and their previously backed up versions.
+
+	In doing so it avoids the need to trust the remote database beyond the
+	hope that data stored there will be saved and returned.  It is able to
+	guarantee, however, that data returned is legitimate and unmodified.
+	No unencrypted data leaves the client for the server.
+
+OPTIONS
+        --backup, -b
+                archive files
+
+        --create, -c
+                create a new archive
+
+        --extract, -x
+                extract files from an archive
+
+        --list, -t
+                list files
+
+        --ping, -p
+                ping a remote server
+
+        --verbose=num, -v num
+                be more verbose, num is the bitwise or of one or more
+                of these:
+		    1=files, 2=protocol, 4=IO, 8=IO summary
+		    16=flow, 32=detail flow, 64=DB
+
+        --dry-run, -n
+                don't actually do anything
+
+        --daemon
+                run as a server (block store)
+
+        --help, -h
+                display a helpful message
+
+        --selftest
+                test the protocol and some internal functions, only
+                available if MAINTAINER_MODE is set to non-zero at
+                compile time
+
+SETUP
+	You must create a file called $HOME/.cryptar to specify the
+	archives you know about.  This should change and become
+	automated as a part of the --create option.
+
+	An archive specification includes the directories to backup as
+	well as the host to which to back it up.  Thus, in usage, one
+	need merely state the archive to use.  What to backup (or
+	restore) and where it is stored remotely is determined from
+	the local database.
+
+EXAMPLES
+	Note that pattern matching (the final arguments to cryptar) is
+	not well implemented yet.  In some cases it's not implemented
+	at all.  This should change soon...
+
+	To archive some files as configured in a database called
+	work-files:
+
+                cryptar --backup work-files
+
+        To see what's in the database:
+
+                cryptar --list work-files
+	
+        To restore those files again:
+
+                cryptar --extract work-files
+	
+FILES
+	$HOME/cryptar/
+                Directory for local databases.  If this goes away,
+        	there is no recovery.
+
+        $HOME/.cryptar
+                Configuration file, probably will get wrapped into
+                --create and the local database.
+
+
+BUGS
+        This software is early beta.  It has many bugs.  The object
+        serialization and network protocol standards may change
+        without notice as it becomes more stable.  This means you can
+        use it, but at your own risk and with the understanding that
+        your current archive may not be accessible by a future version
+        of cryptar.
+
+	As cryptar approaches proper release, we will implement
+	backward compatibility from that point forward.
+
+	In addition, it may not even work as advertised.
+
+	Please help: report bugs or help with development.
+	See the file README.code.txt in the source distribution.
+
+AUTHOR
+        Written by Jeff Abrahamson
+
+REPORTING BUGS
+        Report bugs to <jeff@purple.com>
+
+COPYRIGHT
+	Copyright © 2004 Jeff Abrahamson
+	This is free software; see the source for copying conditions.  There is
+        NO  warranty;  not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR
+        PURPOSE.
+
+SEE ALSO
+         J. Abrahamson, A. J. O'Donnell,Cryptar: Secure, Untrustful,
+         Differencing Backup, NordU/usenix conference, Copenhagen,
+         Denmark, January 31 - February 1, 2004.
+

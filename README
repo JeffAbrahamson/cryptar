@@ -1,0 +1,39 @@
+Cryptar is rsync with an encrypted remote image.  That is, all data is
+compressed and encrypted locally, then sent to the remote host (where
+it is presumably useful to anyone but an authorized user with
+password).  Cryptar keeps local metadata to remember what chunks live
+on the remote host and so how to assemble diffs for further backup or
+for restore.
+
+A technical description of the algorithm lives in
+paper/abrahamson04cryptar.pdf.  An updated version of the same paper
+lives in that directory, with expanded sections concerning
+applications and future directions.  The paper was accepted to the
+2004 NordU/usenix conference.
+
+    J. Abrahamson, A. J. O'Donnell, Cryptar: Secure, Untrustful,
+    Differencing Backup, NordU/usenix conference, Copenhagen, Denmark,
+    January 31 - February 1, 2004.
+
+Sadly, cryptar is not finished, although much of its core
+functionality works. There's still a lot of duct tape holding it
+together.  I wrote this while doing my PhD, and so the product,
+unfortunately, was the paper (conference presentation) rather than the
+software.  I am sometimes asked for the source code, so I've posted it
+here.  There is an older repository on sourceforge, which I should
+some day delete.
+
+The code is old, from 2004.  I can make no promise that it still
+compiles and works with modern versions of the libraries it uses.  At
+the time, librsync was in its infancy and didn't seem usable for
+this.  That may have changed as well, which would be nice.
+
+Some day, in a world where I have a few spare weeks to do it, I'd like
+to rewrite cryptar to be truly useful.  I would like to make it
+comfortable with multiple devices, so that I can use it a bit like
+Dropbox without the magic kernel integration: my files just appear to
+be everywhere, locally cached but automatically updated to some
+encrypted central place and replicated wherever I want them to be.
+And I'd like there to be a free software version of JungleDisk, Mozy,
+Carbonite, Dropbox, where you can host your own data if you want
+anywhere that you can ssh to.

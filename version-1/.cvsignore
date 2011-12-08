@@ -1,0 +1,6 @@
+cryptar
+cryptar-db
+modified-rsync-code
+*.proto
+test*
+.nfs*
