@@ -37,3 +37,9 @@ encrypted central place and replicated wherever I want them to be.
 And I'd like there to be a free software version of JungleDisk, Mozy,
 Carbonite, Dropbox, where you can host your own data if you want
 anywhere that you can ssh to.
+
+    Update:  Someday might have arrived.  The directory src/ contains
+    	     code towards a new version, with planned support for ISP
+    	     ssh (i.e., you have some disk space and ssh shell access
+    	     with your ISP) and for AWS.  Although I'm doing ssh
+    	     first.
