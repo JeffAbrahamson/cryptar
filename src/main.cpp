@@ -62,11 +62,13 @@ namespace {
 
                 BPO::options_description create("Archive creation");
                 create.add_options()
-                        ("user,u", BPO::value<string>(),
+                        ("user,U", BPO::value<string>(),
                          "User name on remote host")
-                        ("host,h", BPO::value<string>(),
+                        ("password,P", BPO::value<string>(),
+                         "Encryption password for remote store (ill-advised except for testing)")
+                        ("host,H", BPO::value<string>(),
                          "Remote host name")
-                        ("root,r", BPO::value<string>(),
+                        ("root,R", BPO::value<string>(),
                          "Absolute path to backup");
 
                 BPO::options_description backup_restore("Backup and Restore");
@@ -81,7 +83,7 @@ namespace {
                 BPO::options_description restore("Restore only");
                 restore.add_options()
                         ("restore-to", BPO::value<string>(),
-                         "Restore to this directory");
+                         "Restore to this directory (default in place)");
 
                 BPO::options_description options("Allowed options");
                 options.add(general).add(create).add(backup_restore).add(restore);
