@@ -1,0 +1,157 @@
+Overview
+
+The code in src/ represents the beginnings of a new cryptar
+implementation.  The algorithm remains roughly the same as outlined in
+paper/abrahamson2004cryptar-improved.pdf, taking into account some of
+the suggestions for future work, most notably remote storage of
+metadata.
+
+This document describes what I am building.  Comments and suggestions
+are welcome.
+
+The goal of cryptar is (now) two-fold.  In its single instance
+variant, we assume a single user on a single host backing up a single
+directory tree.  We use rsync (or scp?) to move data between the local
+filesystem and the remote store.  The remote store requires no special
+software beyond what is typically available from an ISP account with
+shell access (to run rsync).  One user on multiple hosts may be a
+single instance if no two instances are simultaneously active.
+
+In the multi-instance variant, a user has multiple machines connected
+simultaneously.  Changes on any machine are pushed to the others.  In
+this configuration, a cryptar remote server runs on the remote store
+in order to provide push notifications.
+
+The remote store is the same in both cases, and nothing should prevent
+a user from changing how his/her particular instance is configured.
+
+For the single-instance variant of cryptar, it is useful to know if we
+should begin a backup or a restore.  That is, has the remote store
+been modified by another host since this host was last active?  The
+mechanism is a file .cryptar-last at the root of the file hierarchy
+that cryptar manages.  The file contains a time stamp (seconds since
+the epoch in GMT).  On startup, cryptar fetches .cryptar-last and
+compares the remote and local timestamps.  If the local is more
+recent, modifications in the remote are synchronised to the local file
+system before backup begins.  Otherwise, cryptar begins synchronising
+from the local host to the remote store.
+
+
+Serialisation Details
+
+Block id's are always sha256 of the blocks themselves.  The word
+"serialise" should here be understood to mean "serialise in the
+ordinary sense, then compress, then encrypt".  To augment a block
+means to prepend 11 bytes of random data to the beginning (before
+serialisation).  The number 11 is arbitrary, the point is to make same
+blocks compress and encrypt differently.
+
+To push a file to the remote store, we compute a covering (or the
+partial covering needed to make a previous covering full).  For each
+block in the covering, we prepare remote blocks as serialised
+augmented data blocks.  These blocks we call file component blocks.
+
+We also construct a file head block: a blob of data that is a
+serialised tuple of the form
+
+    (sha256 of plaintext file,
+     array of block tuples)
+
+where the array of block tuples has the form
+
+    (block id,
+     weak check sum of original data,
+     sha256 of plaintext block,
+     encryption initialisation vector,
+     base offset,
+     length,
+    )
+
+The base offset is the zero-based offset the beginning of the block in
+the file.  The IV we choose at random for each block.
+
+Finally, we fetch the file timeline block, which is a serialised array
+of
+    (file head id,
+     file name,
+     file size,
+     encryption initialisation vector,
+     time (seconds since epoch) when backup of this file began,
+     user id,
+     group id,
+     mode
+    )
+
+for each time that the file was backed up.  We append the new backup
+information, and push the file timeline block back to the remote
+store.  If the user has requested that we limit the number of backups
+to a certain number or a certain expanse of time, we can trim this
+list and clean up (request deletion of) old blocks.
+
+
+To retrieve a file, we first retrieve the timeline block.  We either
+take the most recent entry or else the entry corresponding to the
+retrieval time requested.  This permits us to request the file head
+block, and from that we can request the file component blocks.  Note
+that the checksums in the file head block permit us potentially to
+construct blocks locally rather than to transfer them.
+
+
+To push a directory to the remote store, we compute a directory head
+block, which is the serialised augmented array of tuples
+
+    (block id of file timeline block,
+     file name,
+     inode number,
+    )
+
+Then we fetch the directory timeline block, which is a serialized
+augmented array of
+
+    (directory head id,
+     directory name,
+     time (seconds since epoch) when of this directory backup began,
+    )
+
+We append the time that we began to backup the directory this time,
+optionally trim data from the past, and push the block back to the
+remote store.
+
+
+To retrieve a directory node, we retrieve the directory timeline
+block, the retrieve the appropriate directory head block.
+
+
+Usage Notes
+
+In single instance mode, one may create, backup, and restore archives
+or parts of archives.
+
+   cryptar --action create --name archive-name
+      --user username
+      --host hostname
+      --root absolute-path-to-backup
+   cryptar --action backup --name archive-name
+      --begins substring
+      --ends substring
+      --contains substring
+   cryptar --action restore --name archive-name
+      --begins substring
+      --ends substring
+      --contains substring
+      --restore-to path
+   cryptar --action backup-daemon --name archive-name
+
+The last runs as a daemon and quits when your session does.  (But how
+does it do that?)  We wouldn't want to start it with your session,
+because you may be logging in to restore something after loss.  It
+either scans for changed files the archive you want backed up, or else
+it registers a node monitor if your file system supports it.
+
+In multi instance mode, the create command and restore commands exist
+unchanged.  The backup command should be unnecessary but harmless.
+For continual synchronisation, the command to run (presumably at
+session start) is
+
+   cryptar --action multi-backup-daemon --name archive-name
+

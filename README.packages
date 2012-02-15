@@ -1,0 +1,15 @@
+This is a list of some packages you're likely to need on a debian /
+ubuntu system in order to compile cryptar but that may not already be
+installed, even though you've installed g++.
+
+  libpstreams-dev
+  libbz2-dev
+  libcrypto++-dev
+  libcrypto++8
+  libboost1.40-dev
+  libboost-program-options-dev
+  libboost-program-options1.40.0
+  libboost-serialization-dev
+  libboost-serialization1.40.0
+  libboost-test-dev
+  libboost-test1.46.1
