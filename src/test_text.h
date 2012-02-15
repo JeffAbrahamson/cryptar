@@ -23,6 +23,7 @@
 #define __TEST_TEXT_H__ 1
 
 
+#include <boost/test/unit_test.hpp>
 #include <map>
 #include <vector>
 #include <string>
@@ -34,6 +35,38 @@ namespace cryptar {
 
         cryptar::vector_string test_text();
         std::map<std::string, std::string> orderly_text();
+
+        
+        struct Messages {
+
+                vector_string messages;
+        
+                Messages()
+                {
+                        mode(Verbose, false);
+                        mode(Testing, true);
+
+                        BOOST_TEST_MESSAGE("Instantiating messages");
+                        messages = test_text();
+                }
+        
+                ~Messages()
+                {
+                        BOOST_TEST_MESSAGE("Deallocating messages");
+                        // And deallocation happens automatically.
+                }
+
+
+                /*
+                  Call a function on each message.  To be useful, that
+                  function should test something.
+                */
+                void test(void(func)(const std::string &s))
+                {
+                        for_each(messages.begin(), messages.end(), func);
+                }
+        };
+        
 }
 
 #endif  /* __TEST_TEXT_H__*/

@@ -23,10 +23,8 @@
 #define BOOST_TEST_MODULE crypt_tests
 #include <algorithm>
 #include <boost/test/unit_test.hpp>
-//#include <iostream>
 #include <pstreams/pstream.h>
 #include <string>
-//#include <vector>
 
 #include "cryptar.h"
 #include "test_text.h"
@@ -115,34 +113,6 @@ namespace {
         }        
 }
 
-
-
-struct Messages {
-
-        vector_string messages;
-        
-        Messages()
-        {
-                BOOST_TEST_MESSAGE("Instantiating messages");
-                messages = test_text();
-        }
-        
-        ~Messages()
-        {
-                BOOST_TEST_MESSAGE("Deallocating messages");
-                // And deallocation happens automatically.
-        }
-
-
-        /*
-          Call a function on each message.  To be useful, that
-          function should test something.
-        */
-        void test(void(func)(const string &s))
-        {
-                for_each(messages.begin(), messages.end(), func);
-        }
-};
 
 
 BOOST_FIXTURE_TEST_SUITE(crypt_tests, Messages)

@@ -50,7 +50,7 @@ LOG_LEVEL=$(shell if [ $$CRYPTAR_TEST_LOG_LEVEL ]; then echo --log_level=$$CRYPT
 	-./$@ $(LOG_LEVEL)
 
 clean :
-	rm -f $(OBJECT) *.o *~ srd TAGS *_test
+	rm -f $(OBJECT) *.o *~ cryptar TAGS *_test
 
 #clean-test :
 #	rm -rf srd-test-*/ test_[0-9]*\.[0-9]*

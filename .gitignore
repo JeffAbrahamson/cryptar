@@ -2,9 +2,7 @@
 *.a
 *.so*
 *_test
-srd
-srd-from-archive
-srd-from-so
+cryptar
 *~
-srd-test-*
 TAGS
+src/cryptar
