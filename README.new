@@ -9,13 +9,22 @@ metadata.
 This document describes what I am building.  Comments and suggestions
 are welcome.
 
-The goal of cryptar is (now) two-fold.  In its single instance
-variant, we assume a single user on a single host backing up a single
-directory tree.  We use rsync (or scp?) to move data between the local
+Cryptar's goal is to maintain a current copy of a file hierarchy on a
+remote server, this without ever exposing unencrypted data beyond the
+local host.  The goal is moreover to be able to detect remote
+tampering with the data in the absence of proper credentials.
+Finally, cryptar can retrieve the remote data, either in place in the
+local managed hierarchy or else to a separate destination.
+
+Cryptar's context is two-fold.  In its single instance variant, we
+assume a single user on a single host backing up a single directory
+tree.  We use rsync (or scp?) to move data between the local
 filesystem and the remote store.  The remote store requires no special
 software beyond what is typically available from an ISP account with
-shell access (to run rsync).  One user on multiple hosts may be a
-single instance if no two instances are simultaneously active.
+shell access (in order to run rsync).  One user on multiple hosts may
+be a single instance if no two instances are simultaneously active.
+It is thus possible to run cryptar on one host, then, after logging
+out, begin running on another and have files synchronise correctly.
 
 In the multi-instance variant, a user has multiple machines connected
 simultaneously.  Changes on any machine are pushed to the others.  In
