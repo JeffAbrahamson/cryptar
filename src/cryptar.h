@@ -34,7 +34,7 @@ namespace cryptar {
         /* ************************************************************ */
         /* Encryption */
         
-        // Compute a hash (message digest).
+        // Compute a hash (message digest).  Currently SHA-256.
         std::string message_digest(const std::string &message,
                                    const bool filesystem_safe = false);
 
@@ -45,9 +45,6 @@ namespace cryptar {
         // and http://www.cryptopp.com/fom-serve/cache/1.html
         // and http://www.cryptopp.com/wiki/FAQ
 
-        /*
-          This is a simple mixin class that provides encryption and decryption.
-        */
         std::string encrypt(const std::string &plain_message,
                             const std::string &password);
         std::string decrypt(const std::string &cipher_message,
@@ -76,6 +73,259 @@ namespace cryptar {
         const bool mode(const Mode m);
 
 
+        /* ************************************************************ */
+        /* work units */
+
+        /*
+          A work unit is something that can be passed between a work
+          thread and a communication thread.  The contract here is
+          that the communication thread has control of the structure
+          from the time the client calls hand_to_comm() until
+          comm_done() returns true.
+
+          This is probably obsolete, I think I rather want to derive
+          from Block and pass on queues.
+        */
+
+        class WorkUnit {
+
+        public:
+                WorkUnit() {};
+                virtual ~WorkUnit() {};
+
+                void hand_to_comm() { comm_done = false; }  // should do handoff, too
+                void comm_done() { m_comm_done = true; }    // should note in done queue
+                bool is_comm() { return !m_comm_done; }
+
+        private:
+                // true if client has control, false if belongs to
+                // communication thread
+                bool m_comm_done;
+
+                // Also needs reference or pointer to thread
+                // and to (mutex-protected?) queue of things that are
+                // done.
+        };
+
+
+        /* ************************************************************ */
+        /* blocks of various sorts */
+
+        /*
+          Blocks come in several flavors.
+          In one dimenions, they represent files or directories.
+          
+          In another dimension, they represent pieces of files, images
+          (collections of pieces), or timelines (sequences of images).
+        */
+        
+        typedef unsigned int BlockID;
+
+
+        class Block {
+
+        public:
+                Block();                            // create empty
+                Block(const std::string &contents); // create new based on contents
+                Block(const BlockId id);            // fetch based on block id
+                virtual ~Block();
+
+                void write();
+                
+        };
+        
+
+        class HeadBlock : public Block {
+        public:
+                HeadBlock(const std::string &filename);
+                HeadBlock(const BlockId id);
+                virtual ~FileHeadBlock();
+        };
+        
+        class FileHeadBlock : public HeadBlock {
+        public:
+                FileHeadBlock(const std::string &filename);
+                FileHeadBlock(const BlockId id);
+                virtual ~FileHeadBlock();
+
+        };
+
+        class DirectoryHeadBlock : public HeadBlock {
+        public:
+                DirectoryHeadBlock(const std::string &filename);
+                DirectoryHeadBlock(const BlockId id);
+                virtual ~DirectoryHeadBlock();
+                
+        };
+
+
+        class TimeLineBlock : public TimeLineBlock {};
+        
+        class FileTimelineBlock : public TimeLineBlock {
+        public:
+                FileTimelineBlock(const BlockId id);
+                virtual ~FileTimelineBlock();
+
+                void trim_by_date(time_t when);
+                void trim_by_count(int count);
+        };
+
+
+        class DirectoryTimelineBlock : public TimeLineBlock {
+        public:
+                DirectoryTimelineBlock(const std::string &filename);
+                DirectoryTimelineBlock(const BlockId id);
+                virtual ~DirectoryTimelineBlock();
+                
+                void trim_by_date(time_t when);
+                void trim_by_count(int count);
+        };
+
+        
+        /* ************************************************************ */
+        /* The filesystem in the remote store. */
+
+        /*
+          Filesystem node base class.
+        */
+
+        class FS_Node {
+        public:
+                FS_Node();
+                virtual ~FS_Node();
+
+                FS_Node &get_parent() const;
+                TimeLineBlock &get_timeline() const;
+                HeadBlock &get_head() const;
+                StatInfo &stat() const;
+                bool is_dirt() const;
+                void persist();
+        };
+
+
+        class FS_File : public FS_Node {};
+
+        class FS_Dir : public FS_Node {
+        public:
+                FS_Dir();
+                virtual ~FS_Dir();
+
+                /* Perhaps these two should add FS_Node's, and so
+                   perhaps even be the same function?
+                */
+                void add_dir(std::string &dir_name);
+                void add_file(std::string &file_name);
+
+                vector<FS_Node &> get_entries() const;
+        };
+
+        /*
+          A representation of the filesystem in the remote store.
+        */
+        
+        class FileSystem {
+        public:
+                FileSystem(BlockID id);
+                ~FileSystem();
+
+                FS_Node &find_by_name(std::string &filename);
+                FS_Node &find_by_hash(std::string &hash);
+
+                void persist();
+                
+        private:
+                // It's worth testing if these should be std::hash instead of std::map
+                // Map filename or file hash to vector of paths where found.
+                // A hash could map to a vector of length greater than one if
+                // a file has been copied.
+                std::map<std::string, std::vector<std::string> > m_names;
+                std::map<std::string, std::vector<std::string> > m_hashes;
+
+                /* Base directory for remote file system.
+                */
+                FS_Dir m_dir;
+                
+                /* Time for which the remote instance is instantiated.
+                   If zero, then time is max time in each TimeLine.
+                */
+                time_t m_when;
+
+        };
+
+
+        /* ************************************************************ */
+        /* ACT's -- Asynchronous Completion Tokens. */
+
+        
+        /*
+          Noop ACT.
+        */
+        class DoNothing {};
+
+
+        /*
+          We might say "object" rather than "token" but for usage by
+          Douglas C. Schmidt, 1998, 1999:
+          http://www.cs.wustl.edu/~schmidt/PDF/ACT.pdf
+         */
+
+        /*
+          ACT that selects a Head object from a TimeLine and queues
+          fetching it.
+        */
+        class TimeLine_HeadSelector {
+                // Select most recent Head less than or equal to time.
+                // If time is zero, select the most recent Head.
+                TimeLine_HeadSelector(TimeLineBlock *tlb, time_t time);
+                ~TimeLine_HeadSelector();
+        };
+
+
+        /*
+          ACT that fetches the blocks of a head object.
+          If levels > 0, recursively fetch sub-objects.
+          If the Head object does not represent a directory,
+          levels has no effect.
+        */
+        class Head_FetchBlocks {
+                Head_FetchBlocks(HeadBlock *hb, int levels = 0);
+                ~Head_FetchBlocks();
+        };
+
+
+        /*
+          ACT that inserts a file into a filesystem object.
+        */
+        class Head_InsertFS {
+                Head_InsertFS(HeadBlock *hb, FS_Node *fsn);
+                ~Head_InsertFS();
+        };
+
+
+        /*
+          ACT to note that a block has been fetched.
+        */
+        class Block_NoteFetched {
+                Block_NoteFetched(Block *b);
+                ~Block_NoteFetched();
+        };
+
+
+        /*
+          ACT to call a trigger on a Head or TimeLine object.
+          Calls other->act().
+          For example, the head object can do something when all of
+          its blocks have been fetched via
+
+              act() {
+                  if(count++ == m_num_blocks)
+                      do_something();
+              }
+        */
+        class Block_Trigger {
+                Block_Trigger(Block *b, Block *other);
+                ~Block_Trigger();
+        };
 }
 
 #endif  /* __CRYPTAR_H__*/
