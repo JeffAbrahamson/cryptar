@@ -119,12 +119,14 @@ BOOST_FIXTURE_TEST_SUITE(crypt_tests, Messages)
 
 BOOST_AUTO_TEST_CASE(message_digest)
 {
+        cout << "  [test_message_digest]" << endl;
         test(test_message_digest);
 }
 
 
 BOOST_AUTO_TEST_CASE(encryption)
 {
+        cout << "  [test_encryption]" << endl;
         test(test_encryption);
 }
 
