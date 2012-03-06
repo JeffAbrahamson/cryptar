@@ -1,0 +1,27 @@
+Block class.
+   Knows how to serialise, augment, compress, encrypt.
+   Knows how to decrypt, decompress, deaugment, and unserialise.
+   Knows how to confirm that its data is valid on deserialisation.
+   Knows how to write itself to some unique name for transfer.
+
+Given a candidate covering, compute a full covering.
+   Covering is block id's, file offsets, checksums(x2)
+   Reuse what blocks we can, add new blocks
+
+FileHeadBlock
+   Instantiate from name of a local file
+   Instantiate from block id (i.e., fetch from remote)
+
+FileTimelineBlock
+   Instantiate from block id (i.e., fetch from remote)
+   Trim by number of deltas
+   Trim by time
+
+DirectoryHeadBlock
+   Instantiate from local directory
+   Instantiate from block id (i.e., fetch from remote)
+
+DirectoryTimelineBlock
+   Instantiate from block id (i.e., fetch from remote)
+   Trim by number of deltas
+   Trim by time

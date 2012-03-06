@@ -1,0 +1,53 @@
+Backup:
+
+    if new:
+        insert into files
+        insert into instances
+        for each block at positions 0, 512, 1024, etc. (512 * n):
+            compute checksum, sha256
+            comopress, encrypt, send block
+            insert into instance block
+            insert into blocks
+        wait for confirmation
+        update instance
+
+    if exists:
+        select from files
+        insert into instances
+        select all from blocks where file id (make hash on rolling checksum)
+        compute rolling checksum (@ 0, 1, 2, ...):
+            if rolling checksum present in hash:
+                compute sha1
+                if sha1 matches:
+                    remember local start, end, block number
+        compute cover, adding blocks as needed
+        for block in cover:
+            insert into instanceBlocks
+            if not exists:
+                send block
+                insert into blocks
+        wait for confirm
+        update instance
+
+
+Restore:
+
+    select from Files
+    select from Instance where file (max or date)
+    select Instance Blocks where Instance
+    if not local file exists:
+        fetch all blocks
+        reassemble
+        mv in place
+    else:
+        select blocks from Instance Blocks
+        hash on checksum
+        compute rolling checksum of file
+        on hit, compute sha256
+        on hit, note block
+        fetch missing blocks from remote
+        assemble file
+        mv in place
+
+
+
