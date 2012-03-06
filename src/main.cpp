@@ -9,10 +9,13 @@
   split free/commercial license, such as the one long used by
   Sleepycat.
 
-  In any case, this software is explicitly licensed the terms of the
-  GNU General Public License as published by the Free Software
-  Foundation, either version 3 of the License, or (at your option) any
-  later version.
+
+  EVENTUALLY GPL
+  
+  In any case, after five years from the copyright date above, this
+  software shall be explicitly licensed the terms of the GNU General
+  Public License as published by the Free Software Foundation, either
+  version 3 of the License, or (at your option) any later version.
   
   cryptar is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
