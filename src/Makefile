@@ -1,11 +1,12 @@
-GCC = g++ -ggdb3 -Wall
-#GCC = g++ -ggdb3 -Wall -std=c++0x
+#GCC = g++ -ggdb3 -Wall
+GCC = g++ -ggdb3 -Wall -std=c++0x
 # c++0x gives us rvalue references, most notably
 
-SRC = 			\
-	compress.cpp	\
-	crypt.cpp	\
-	mode.cpp	\
+SRC = 				\
+	communicate.cpp		\
+	compress.cpp		\
+	crypt.cpp		\
+	mode.cpp		\
 
 
 HEADER = cryptar.h
@@ -15,6 +16,7 @@ OBJECT = $(SRC:%.cpp=%.o)
 LIBS = 					\
 	-lboost_program_options		\
 	-lboost_serialization		\
+	-lboost_thread			\
 	-lcrypto++			\
 	-lbz2				\
 
@@ -24,7 +26,7 @@ TEST_LIBS = 				\
 
 all : cryptar test TAGS
 
-%.o : %.cpp %.h
+%.o : %.cpp cryptar.h
 	$(GCC) -c -fpic -o $@ $<
 
 %.o : %.cpp
@@ -34,6 +36,7 @@ cryptar : main.o $(HEADER) $(OBJECT) Makefile
 	$(GCC) -o cryptar main.o $(OBJECT) $(LIBS)
 
 TESTS = 			\
+	communicate_test	\
 	compress_test		\
 	crypt_test 		\
 	mode_test 		\

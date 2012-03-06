@@ -3,15 +3,21 @@
   
   This file is part of cryptar.
   
-  cryptar is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
+  This software might be free, it might be commercial.
+  You may safely assume that using it for personal, non-commercial
+  use will remain acceptable.  The eventual license may, however, be a
+  split free/commercial license, such as the one long used by
+  Sleepycat.
+
+  In any case, this software is explicitly licensed the terms of the
+  GNU General Public License as published by the Free Software
+  Foundation, either version 3 of the License, or (at your option) any
+  later version.
   
-  cryptar is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
+  cryptar is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  General Public License for more details.
   
   You should have received a copy of the GNU General Public License
   along with cryptar.  If not, see <http://www.gnu.org/licenses/>.
@@ -21,6 +27,15 @@
 
 #ifndef __CRYPTAR_H__
 #define __CRYPTAR_H__ 1
+
+
+#include <boost/thread.hpp>
+#include <list>
+#include <map>
+#include <queue>
+#include <string>
+#include <vector>
+
 
 namespace cryptar {
 
@@ -93,7 +108,7 @@ namespace cryptar {
                 WorkUnit() {};
                 virtual ~WorkUnit() {};
 
-                void hand_to_comm() { comm_done = false; }  // should do handoff, too
+                void hand_to_comm() { m_comm_done = false; }  // should do handoff, too
                 void comm_done() { m_comm_done = true; }    // should note in done queue
                 bool is_comm() { return !m_comm_done; }
 
@@ -119,7 +134,7 @@ namespace cryptar {
           (collections of pieces), or timelines (sequences of images).
         */
         
-        typedef unsigned int BlockID;
+        typedef unsigned int BlockId;
 
 
         class Block {
@@ -139,7 +154,7 @@ namespace cryptar {
         public:
                 HeadBlock(const std::string &filename);
                 HeadBlock(const BlockId id);
-                virtual ~FileHeadBlock();
+                virtual ~HeadBlock();
         };
         
         class FileHeadBlock : public HeadBlock {
@@ -159,7 +174,7 @@ namespace cryptar {
         };
 
 
-        class TimeLineBlock : public TimeLineBlock {};
+        class TimeLineBlock : public Block {};
         
         class FileTimelineBlock : public TimeLineBlock {
         public:
@@ -181,10 +196,79 @@ namespace cryptar {
                 void trim_by_count(int count);
         };
 
+
+        /* ************************************************************ */
+        /* For moving blocks to and from remote store */
+
+        class Stage {
+        public:
+                Stage() {};
+                virtual ~Stage() {};
+
+                /*
+                  Write a block such that the transport routines can
+                  copy it to the remote store.  If transport doesn't
+                  require staging to disk first, write() could also do
+                  the transfer, in which case the corresponding
+                  transport function would be a noop.
+                */
+                virtual void write(Block *bp) {
+                        throw(std::logic_error("Calling Stage::write() directly"));
+                              }
+                /*
+                  The reverse of write().  Instantiate a block that
+                  has been fetched from the remote.  If the transport
+                  routines don't need to stage to disk first, read()
+                  could also do the transfer, in which case the
+                  corresponding transport function would be a noop.
+                 */
+                virtual Block *read() {
+                                throw(std::logic_error("Calling Stage::read() directly"));
+                                      }
+        };
+
+
+        /* ************************************************************ */
+        /* Communicator */
+
+        class Communicator {
+        public:
+                Communicator();
+                ~Communicator();
+
+                void push(Block *);
+                void operator()();   // Should really only be called at thread creation
+
+        private:
+                typedef std::queue<Block *>::size_type queue_size_type;
+                
+                void run();
+                bool queue_empty();
+                Block *pop();
+                void comm_batch();
+
+                bool m_needed;    /* set to false to encourage auto-shutdown */
+                const queue_size_type m_batch_size;
+                boost::mutex m_queue_access;
+                std::queue<Block *> m_queue;
+                boost::thread *m_thread;
+                Stage *m_stage;
+        };
+
+        
         
         /* ************************************************************ */
         /* The filesystem in the remote store. */
 
+
+        /*
+          Stat structure for remote store files.  This will
+          (eventually) have to deal with different local file systems
+          and OS's, say to support MacOS and Windows.
+         */
+        class StatInfo {};
+
+        
         /*
           Filesystem node base class.
         */
@@ -216,7 +300,7 @@ namespace cryptar {
                 void add_dir(std::string &dir_name);
                 void add_file(std::string &file_name);
 
-                vector<FS_Node &> get_entries() const;
+                std::vector<FS_Node &> get_entries() const;
         };
 
         /*
@@ -225,7 +309,7 @@ namespace cryptar {
         
         class FileSystem {
         public:
-                FileSystem(BlockID id);
+                FileSystem(BlockId id);
                 ~FileSystem();
 
                 FS_Node &find_by_name(std::string &filename);
