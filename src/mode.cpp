@@ -29,8 +29,27 @@ using namespace std;
 
 
 namespace cryptar {
-        static map<Mode, bool> modes;
+        map<Mode, bool> modes;
+
+        /*
+          Initialize modes to something reasonable.
+        */
+        struct ModeInit {
+                ModeInit()
+                {
+                        mode(Testing, false);
+                        mode(Verbose, false);
+                        mode(Threads, true);
+                }
+        };
+
+        /*
+          We don't know when this will execute, except that it will be
+          before any of the other mode functions are called.
+        */
+        ModeInit mi;
 }
+
 
 
 void cryptar::mode(const Mode m, const bool new_state)

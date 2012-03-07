@@ -40,16 +40,16 @@ namespace {
   that makes sense.  Provide auto-tuning function so others can tune
   to their environments.
 */
-Communicator::Communicator() : m_needed(false), m_batch_size(1), m_stage(new Stage())
+Communicator::Communicator(const Stage &in_stage)
+        : m_batch_size(3), m_stage(&in_stage), m_needed(true)
 {
-        if(!mode(Testing))
+        if(mode(Threads))
                 run();
 }
 
 
 Communicator::~Communicator()
 {
-        delete m_stage;         // ################
 }
 
 
@@ -87,11 +87,36 @@ Block *Communicator::pop()
 }
 
 
+void Communicator::wait()
+{
+        while(true) {
+                if(queue_empty()) {
+                        if(mode(Verbose))
+                                cout << "comm: queue is empty, joining..." << endl;
+                        m_needed = false;
+                        m_thread->join();
+                        return;
+                }
+                if(!m_needed) {
+                        if(mode(Verbose))
+                                cout << "comm: queue not empty, but thread appears to have terminated."
+                                     << endl;
+                        return;
+                }
+                if(mode(Verbose))
+                        cout << "comm: waiting for thread to become idle..." << endl;
+                sleep(1);
+        }
+}
+
+
 /*
-  Start a thread that calls comm_loop().
+  Start a thread.  New threads call operator().
 */
 void Communicator::run()
 {
+        if(mode(Verbose))
+                cout << "Starting a new thread." << endl;
         m_thread = new boost::thread(boost::ref(*this));
 }
 
@@ -101,6 +126,13 @@ void Communicator::run()
 */
 void Communicator::operator()()
 {
+        if(!mode(Threads)) {
+                // If running single-threaded, run once and exit.
+                comm_batch();
+                return;
+        }
+        if(mode(Verbose))
+                cout << "New thread loop starting." << endl;
         while(m_needed)
                 comm_batch();
 }
@@ -112,11 +144,14 @@ void Communicator::operator()()
 void Communicator::comm_batch()
 {
         if(m_queue.empty()) {
+                // If the queue is empty, sleep a moment to avoid
+                // spinning.
                 sleep(1);
                 return;
         }
 
         vector<Block *> blocks_to_stage;
+        // First gather blocks so that we can release the lock.
         {
                 boost::lock_guard<boost::mutex> lock(m_queue_access);
                 if(m_queue.empty())
@@ -128,9 +163,12 @@ void Communicator::comm_batch()
                         m_queue.pop();
                 }
         }
+        // We stage, transport, and then call completion routines
         for_each(blocks_to_stage.begin(),
                  blocks_to_stage.end(),
-                 //bind1st(mem_fun1_t<void, Stage, Block *>(&Stage::write), m_stage));
-                 bind1st(mem_fun(&Stage::write), &m_stage));
-
+                 bind1st(mem_fun(&Stage::write), m_stage));
+        // ################ transport here ################
+        for_each(blocks_to_stage.begin(),
+                 blocks_to_stage.end(),
+                 boost::bind(&Block::completion_action, _1));
 }

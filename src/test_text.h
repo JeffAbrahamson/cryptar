@@ -28,6 +28,8 @@
 #include <vector>
 #include <string>
 
+#include "cryptar.h"
+
 
 namespace cryptar {
 
@@ -65,6 +67,23 @@ namespace cryptar {
                 {
                         for_each(messages.begin(), messages.end(), func);
                 }
+        };
+
+
+        /*
+          Staging class that does nothing on write().
+          But read() remains an error.
+        */
+        class NoStage : public Stage {
+        public:
+                NoStage() { std::cout << "NoStage()" << std::endl; };
+                virtual ~NoStage() { std::cout << "~NoStage()" << std::endl; };
+                
+                virtual void write(Block *bp)
+                {
+                        if(mode(Verbose))
+                                std::cout << "NoStage::write()" << std::endl;
+                };
         };
         
 }

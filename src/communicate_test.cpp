@@ -27,7 +27,7 @@
 //#include <string>
 
 #include "cryptar.h"
-//#include "test_text.h"
+#include "test_text.h"
 
 
 using namespace cryptar;
@@ -36,20 +36,62 @@ using namespace std;
 
 namespace {
 
-        void draft()
+        class ACT_Print : public ACT_Base {
+
+        public:
+                ACT_Print(int i) : m_i(i) {};
+                virtual void operator()()
+                {
+                        cout << "Completing " << m_i << endl;
+                        BOOST_CHECK(m_i > 0);
+                }
+
+        private:
+                int m_i;
+        };
+        
+
+        /*
+          Queue some blocks for transfer.
+          Their completion methods just print that they've been transferred.
+        */
+        void print_completion(bool thread)
         {
+                mode(Verbose, true);
                 mode(Testing, true);
-                mode(Verbose, false);
-                Communicator c;
+                mode(Threads, thread);
+                NoStage ns;
+                Communicator c(ns);
+
+                // Start with 1 so that we can verify that ACT's have
+                // been initialized.
+                for(int i = 1; i <= 10; i++) {
+                        Block *bp = new Block();
+                        bp->completion_action(new ACT_Print(i));
+                        c.push(bp);
+                }
+
+                // process the communication queue, once if thread == false,
+                // completely otherwise.
+                if(thread)
+                        c.wait();
+                else
+                        c();
         }
         
 }
 
 
 
-BOOST_AUTO_TEST_CASE(draft_test)
+BOOST_AUTO_TEST_CASE(case_print_completion_one)
 {
-        draft();
+        print_completion(false);
+}
+
+
+BOOST_AUTO_TEST_CASE(case_print_completion_thread)
+{
+        print_completion(true);
 }
 
 

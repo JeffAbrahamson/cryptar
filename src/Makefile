@@ -3,6 +3,7 @@ GCC = g++ -ggdb3 -Wall -std=c++0x
 # c++0x gives us rvalue references, most notably
 
 SRC = 				\
+	block.cpp		\
 	communicate.cpp		\
 	compress.cpp		\
 	crypt.cpp		\
@@ -47,6 +48,8 @@ TESTS = 			\
 test : $(TESTS)
 
 LOG_LEVEL=$(shell if [ $$CRYPTAR_TEST_LOG_LEVEL ]; then echo --log_level=$$CRYPTAR_TEST_LOG_LEVEL; fi)
+
+test_text.o : test_text.h
 
 %_test : %_test.o test_text.o mode.o $(OBJECT)
 	$(GCC) -o $@ $^ $(TEST_LIBS) $(LIBS)

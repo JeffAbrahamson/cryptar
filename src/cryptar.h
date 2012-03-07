@@ -27,6 +27,7 @@
 #include <list>
 #include <map>
 #include <queue>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -76,6 +77,7 @@ namespace cryptar {
         enum Mode {
                 Verbose,
                 Testing,
+                Threads,        /* if false, do not start threads other than main */
         };
 
         void mode(const Mode m, const bool new_state);
@@ -118,6 +120,25 @@ namespace cryptar {
 
 
         /* ************************************************************ */
+        /* ACT_Base -- Asynchronous Completion Tokens. */
+
+        
+        /*
+          The base class, a noop ACT.
+          The action is invoked by operator().
+        */
+        class ACT_Base {
+        public:
+                ACT_Base() {};
+                virtual ~ACT_Base() {};
+
+                //virtual void operator()() = 0;
+                virtual void operator()() { throw std::logic_error("operator() in ACT_Base"); }
+        };
+
+
+        
+        /* ************************************************************ */
         /* blocks of various sorts */
 
         /*
@@ -129,18 +150,23 @@ namespace cryptar {
         */
         
         typedef unsigned int BlockId;
+        //class ACT_Base;
 
-
+        
         class Block {
-
         public:
                 Block();                            // create empty
                 Block(const std::string &contents); // create new based on contents
                 Block(const BlockId id);            // fetch based on block id
-                virtual ~Block();
+                virtual ~Block() {};
 
+                bool action_pending() const { return !m_act_queue.empty(); }
+                void completion_action(ACT_Base *);
+                void completion_action();
                 void write();
-                
+
+        private:
+                std::queue<ACT_Base *> m_act_queue;
         };
         
 
@@ -227,10 +253,11 @@ namespace cryptar {
 
         class Communicator {
         public:
-                Communicator();
+                Communicator(const Stage &in_stage);
                 ~Communicator();
 
                 void push(Block *);
+                void wait();
                 void operator()();   // Should really only be called at thread creation
 
         private:
@@ -241,12 +268,13 @@ namespace cryptar {
                 Block *pop();
                 void comm_batch();
 
-                bool m_needed;    /* set to false to encourage auto-shutdown */
                 const queue_size_type m_batch_size;
+                const Stage *m_stage;
+
+                bool m_needed;    /* set to false to encourage auto-shutdown */
                 boost::mutex m_queue_access;
                 std::queue<Block *> m_queue;
                 boost::thread *m_thread;
-                Stage *m_stage;
         };
 
         
@@ -336,10 +364,16 @@ namespace cryptar {
 
         
         /*
-          Noop ACT.
-        */
-        class DoNothing {};
+          The base class, a noop ACT.
+        */ /*
+        class ACT_Base {
+                ACT_Base() {};
+                virtual ~ACT_Base() {};
 
+                //virtual void operator()() = 0;
+                virtual void operator()() { throw std::logic_error("operator() in ACT_Base"); }
+        };
+        */
 
         /*
           We might say "object" rather than "token" but for usage by
@@ -351,11 +385,13 @@ namespace cryptar {
           ACT that selects a Head object from a TimeLine and queues
           fetching it.
         */
-        class TimeLine_HeadSelector {
+        class TimeLine_HeadSelector : public ACT_Base {
                 // Select most recent Head less than or equal to time.
                 // If time is zero, select the most recent Head.
                 TimeLine_HeadSelector(TimeLineBlock *tlb, time_t time);
                 ~TimeLine_HeadSelector();
+
+                virtual void operator()();
         };
 
 
@@ -365,27 +401,33 @@ namespace cryptar {
           If the Head object does not represent a directory,
           levels has no effect.
         */
-        class Head_FetchBlocks {
+        class Head_FetchBlocks : public ACT_Base  {
                 Head_FetchBlocks(HeadBlock *hb, int levels = 0);
                 ~Head_FetchBlocks();
+
+                virtual void operator()();
         };
 
 
         /*
           ACT that inserts a file into a filesystem object.
         */
-        class Head_InsertFS {
+        class Head_InsertFS : public ACT_Base  {
                 Head_InsertFS(HeadBlock *hb, FS_Node *fsn);
                 ~Head_InsertFS();
+
+                virtual void operator()();
         };
 
 
         /*
           ACT to note that a block has been fetched.
         */
-        class Block_NoteFetched {
+        class Block_NoteFetched : public ACT_Base  {
                 Block_NoteFetched(Block *b);
                 ~Block_NoteFetched();
+
+                virtual void operator()();
         };
 
 
@@ -400,9 +442,11 @@ namespace cryptar {
                       do_something();
               }
         */
-        class Block_Trigger {
+        class Block_Trigger : public ACT_Base  {
                 Block_Trigger(Block *b, Block *other);
                 ~Block_Trigger();
+
+                virtual void operator()();
         };
 }
 
