@@ -180,7 +180,8 @@ int main(int argc, char *argv[])
                 return 0;
         }
 
-        Communicator send;
-        Communicator receive;
+        Stage st;
+        Communicator send(st);
+        Communicator receive(st);
         return 0;
 }

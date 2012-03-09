@@ -6,6 +6,7 @@ SRC = 				\
 	block.cpp		\
 	communicate.cpp		\
 	compress.cpp		\
+	config.cpp		\
 	crypt.cpp		\
 	mode.cpp		\
 
