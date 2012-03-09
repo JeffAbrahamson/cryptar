@@ -1,3 +1,6 @@
+Test to stage a block and retrieve it.
+Test to stage a file and its head block, then retrieve it.
+
 Block class.
    Knows how to serialise, augment, compress, encrypt.
    Knows how to decrypt, decompress, deaugment, and unserialise.
