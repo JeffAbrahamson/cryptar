@@ -60,8 +60,7 @@ namespace {
                 mode(Verbose, true);
                 mode(Testing, true);
                 mode(Threads, thread);
-                NoStage ns;
-                Communicator c(ns);
+                Communicator c(new NoStage(), new Config());
 
                 // Start with 1 so that we can verify that ACT's have
                 // been initialized.

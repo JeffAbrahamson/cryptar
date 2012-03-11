@@ -180,8 +180,8 @@ int main(int argc, char *argv[])
                 return 0;
         }
 
-        Stage st;
-        Communicator send(st);
-        Communicator receive(st);
+        // Config needs to be populated correctly ################
+        Communicator send(new Stage, new Config);
+        Communicator receive(new Stage, new Config);
         return 0;
 }

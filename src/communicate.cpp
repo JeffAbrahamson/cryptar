@@ -39,9 +39,12 @@ namespace {
   Eventually set m_batch_size to 500 or something.  Tune to a value
   that makes sense.  Provide auto-tuning function so others can tune
   to their environments.
+
+  This owns the pointers.  Don't use the same Stage or Config for
+  other purposes.
 */
-Communicator::Communicator(const Stage &in_stage)
-        : m_batch_size(3), m_stage(&in_stage), m_needed(true)
+Communicator::Communicator(const Stage *in_stage, const Config *in_config)
+        : m_batch_size(3), m_stage(in_stage), m_config(in_config), m_needed(true)
 {
         if(mode(Threads))
                 run();
@@ -50,6 +53,8 @@ Communicator::Communicator(const Stage &in_stage)
 
 Communicator::~Communicator()
 {
+        delete m_stage;
+        delete m_config;
 }
 
 
