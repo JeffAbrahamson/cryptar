@@ -49,7 +49,7 @@ namespace cryptar {
                                    const bool filesystem_safe = false);
 
         // Return a (not necessarily human readable) string of random bits.
-        std::string pseudo_random_string(int length);
+        std::string pseudo_random_string(int length = 40);
         
         // Crypto++ is documented at http://www.cryptopp.com/
         // and http://www.cryptopp.com/fom-serve/cache/1.html
@@ -149,24 +149,51 @@ namespace cryptar {
           (collections of pieces), or timelines (sequences of images).
         */
         
-        typedef unsigned int BlockId;
+        typedef std::string BlockId;
         //class ACT_Base;
 
-        
-        class Block {
-        public:
-                Block();                            // create empty
-                Block(const std::string &contents); // create new based on contents
-                Block(const BlockId id);            // fetch based on block id
-                virtual ~Block() {};
 
+        /*
+          Basic block, from which all blocks derive.
+          I don't think anything should need to instantiate this directly,
+          for which reason the constructors are protected.
+        */
+        class Block {
+                // I don't think anything should need to instantiate this directly,
+                // for which reason constructor and destructor should
+                // surely be protected.  But for the moment,
+                // communicate_test.cpp does, and I'm not yet sure what the best answer
+                // is.
+        public:
+                Block(const std::string &in_crypto); // create empty (for use by derived classes)
+                //Block(const std::string &in_crypto, const std::string &in_contents); // create new based on contents
+                Block(const std::string &in_crypto_key, const BlockId in_id); // fetch based on block id
+                virtual ~Block();
+
+        public:
                 bool action_pending() const { return !m_act_queue.empty(); }
                 void completion_action(ACT_Base *);
                 void completion_action();
                 void write();
 
-        private:
+        protected:
+                std::string m_cipher_text;
+                const std::string m_crypto_key;
+                BlockId m_id;        private:
+
                 std::queue<ACT_Base *> m_act_queue;
+        };
+
+
+        class DataBlock : public Block {
+        public:
+                //DataBlock(const std::string &in_crypto_key, const BlockId id);
+                DataBlock(const std::string &in_crypto_key, const std::string &in_data);       // create with content
+                virtual ~DataBlock() {};
+
+                std::string plain_text() const;
+
+        private:
         };
         
 
@@ -218,37 +245,6 @@ namespace cryptar {
 
 
         /* ************************************************************ */
-        /* For moving blocks to and from remote store */
-
-        class Stage {
-        public:
-                Stage() {};
-                virtual ~Stage() {};
-
-                /*
-                  Write a block such that the transport routines can
-                  copy it to the remote store.  If transport doesn't
-                  require staging to disk first, write() could also do
-                  the transfer, in which case the corresponding
-                  transport function would be a noop.
-                */
-                virtual void write(Block *bp) {
-                        throw(std::logic_error("Calling Stage::write() directly"));
-                              }
-                /*
-                  The reverse of write().  Instantiate a block that
-                  has been fetched from the remote.  If the transport
-                  routines don't need to stage to disk first, read()
-                  could also do the transfer, in which case the
-                  corresponding transport function would be a noop.
-                 */
-                virtual Block *read() {
-                                throw(std::logic_error("Calling Stage::read() directly"));
-                                      }
-        };
-
-
-        /* ************************************************************ */
         /* Configuration */
 
         /*
@@ -292,7 +288,120 @@ namespace cryptar {
 
         
         /* ************************************************************ */
+        /* For moving blocks to and from remote store */
+
+        /*
+          Staging involves persisting (or reading) a block to (or from) a local file.
+          Transporting involves moving data to or from a remote host.
+
+          The initial rsync-based mechanism writes files to a local
+          staging directory before rsyncing them to the remote host.
+          Other remote arrangements, such as various cloud providers,
+          might involve different staging or transport mechanisms.
+          Either (but not both of) staging or transport may be a
+          no-op.
+        */
+        class Stage {
+        public:
+                Stage() {};
+                virtual ~Stage() {};
+
+                /*
+                  Write a block such that the transport routines can
+                  copy it to the remote store.  If transport doesn't
+                  require staging to disk first, write() could also do
+                  the transfer, in which case the corresponding
+                  transport function would be a noop.
+                */
+                virtual void write(Block *bp) {
+                        throw(std::logic_error("Calling Stage::write() directly"));
+                              }
+                /*
+                  The reverse of write().  Instantiate a block that
+                  has been fetched from the remote.  If the transport
+                  routines don't need to stage to disk first, read()
+                  could also do the transfer, in which case the
+                  corresponding transport function would be a noop.
+                 */
+                virtual Block *read() {
+                                throw(std::logic_error("Calling Stage::read() directly"));
+                                      }
+
+                /* Clean the staging area. */
+                virtual void clean() {};
+        };
+
+
+        class StageFS : public Stage {
+        public:
+                StageFS(const std::string &in_base_dir);
+                virtual ~StageFS() {};
+
+                virtual void write(Block *bp);
+                virtual Block *read();
+                
+        private:
+                std::string m_base_dir;
+        };
+
+
+        /*
+          The base transport class does nothing (i.e., no transport).
+          This corresponds to using cryptar on a local store, as a
+          sort of encrypted svn repository.  More usefully, it helps
+          for testing.  Otherwise, a derived class is of more
+          interest.
+        */
+        class Transport {
+        public:
+                Transport(Config &config) {};
+                virtual ~Transport() {};
+
+                // An action to take before pushing anything.
+                virtual void pre_push() {};
+                // An action to push a block to the remote store.
+                virtual void push(Block *bp) {};
+                // An action to take after all blocks are pushed.
+                virtual void post_push() {};
+                
+                // An action to take before pulling anything.
+                virtual void pre_pull() {};
+                // An action to pull a block to the remote store.
+                virtual void pull(Block *bp) {};
+                // An action to take after all blocks are pulled.
+                virtual void post_pull() {};
+
+        protected:
+                Config m_config;
+        };
+
+
+        class TransportRsync {
+        public:
+                TransportRsync(Config &config) {};
+                virtual ~TransportRsync() {};
+
+                // An action to take before pushing anything.
+                virtual void pre_push() {};
+                // An action to push a block to the remote store.
+                virtual void push(Block *bp) {};
+                // An action to take after all blocks are pushed.
+                virtual void post_push() {};
+                
+                // An action to take before pulling anything.
+                virtual void pre_pull() {};
+                // An action to pull a block to the remote store.
+                virtual void pull(Block *bp) {};
+                // An action to take after all blocks are pulled.
+                virtual void post_pull() {};
+        };
+        
+
+        /* ************************************************************ */
         /* Communicator */
+
+        const int communicator_prod_batch_size = 100;
+        const int communicator_test_batch_size = 3;
 
         class Communicator {
         public:

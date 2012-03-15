@@ -13,3 +13,5 @@ installed, even though you've installed g++.
   libboost-serialization1.40.0
   libboost-test-dev
   libboost-test1.46.1
+  libboost-thread1.46-dev
+  libboost-thread1.46.1

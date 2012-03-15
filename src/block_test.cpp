@@ -36,47 +36,58 @@ using namespace std;
 
 namespace {
 
-        class ACT_Print : public ACT_Base {
+        int num_completions;
+
+
+        class ACT_Check : public ACT_Base {
 
         public:
-                ACT_Print(int i) : m_i(i) {};
+                ACT_Check(DataBlock *in_bp, string in_orig)
+                        : m_bp(in_bp), m_original_plain_text(in_orig) {};
                 virtual void operator()()
                 {
-                        cout << "Completing " << m_i << endl;
-                        BOOST_CHECK(m_i > 0);
+                        BOOST_CHECK(m_original_plain_text == m_bp->plain_text());
+                        ++num_completions;
                 }
 
         private:
-                int m_i;
+                DataBlock *m_bp;
+                string m_original_plain_text;
         };
         
 
         /*
           Queue some blocks for transfer.
-          Their completion methods just print that they've been transferred.
+          Their completion methods just check that encryption is working.
         */
-        void print_completion(bool thread)
+        void check_completion(bool thread)
         {
+                num_completions = 0;
                 mode(Verbose, true);
                 mode(Testing, true);
                 mode(Threads, thread);
                 Communicator c(new NoStage(), new Config());
-                string pass = ""; // doesn't matter here
 
                 // Start with 1 so that we can verify that ACT's have
                 // been initialized.
-                for(int i = 1; i <= 10; i++) {
-                        Block *bp = new Block(pass);
-                        bp->completion_action(new ACT_Print(i));
+                const int loop_num = 10;
+                for(int i = 1; i <= loop_num; i++) {
+                        string pass = pseudo_random_string();
+                        string content = pseudo_random_string(100);
+                        DataBlock *bp = new DataBlock(pass, content);
+                        bp->completion_action(new ACT_Check(bp, content));
                         c.push(bp);
                 }
 
                 // process the communication queue, once if thread == false,
                 // completely otherwise.
-                if(thread)
+                if(thread) {
                         c.wait();
-                else
+                        BOOST_CHECK_EQUAL(num_completions, loop_num);
+                } else {
                         c();
+                        BOOST_CHECK_EQUAL(num_completions, communicator_test_batch_size);
+                }
         }
         
 }
@@ -85,13 +96,13 @@ namespace {
 
 BOOST_AUTO_TEST_CASE(case_print_completion_one)
 {
-        print_completion(false);
+        check_completion(false);
 }
 
 
 BOOST_AUTO_TEST_CASE(case_print_completion_thread)
 {
-        print_completion(true);
+        check_completion(true);
 }
 
 

@@ -44,8 +44,10 @@ namespace {
   other purposes.
 */
 Communicator::Communicator(const Stage *in_stage, const Config *in_config)
-        : m_batch_size(3), m_stage(in_stage), m_config(in_config), m_needed(true)
+        : m_batch_size(mode(Testing) ? communicator_test_batch_size : communicator_prod_batch_size),
+          m_stage(in_stage), m_config(in_config), m_needed(true)
 {
+        //m_batch_size = mode(Testing) ? communicator_test_batch_size : communicator_prod_batch_size;
         if(mode(Threads))
                 run();
 }

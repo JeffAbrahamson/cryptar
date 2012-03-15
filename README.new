@@ -48,12 +48,13 @@ from the local host to the remote store.
 
 Serialisation Details
 
-Block id's are always sha256 of the blocks themselves.  The word
-"serialise" should here be understood to mean "serialise in the
-ordinary sense, then compress, then encrypt".  To augment a block
-means to prepend 11 bytes of random data to the beginning (before
-serialisation).  The number 11 is arbitrary, the point is to make same
-blocks compress and encrypt differently.
+Block id's are always sha256 of the blocks themselves.  (No: they are
+320 bit random strings.)  The word "serialise" should here be
+understood to mean "serialise in the ordinary sense, then compress,
+then encrypt".  To augment a block means to prepend 11 bytes of random
+data to the beginning (before serialisation).  The number 11 is
+arbitrary, the point is to make same blocks compress and encrypt
+differently.
 
 To push a file to the remote store, we compute a covering (or the
 partial covering needed to make a previous covering full).  For each

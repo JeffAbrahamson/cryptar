@@ -25,26 +25,36 @@
 using namespace cryptar;
 using namespace std;
 
-
-Block::Block()
+Block::Block(const string &in_crypto_key)
+         : m_crypto_key(in_crypto_key)
 {
+        m_id = pseudo_random_string();
 }
 
-
-
-/*
-  Create new based on contents
-*/
-Block::Block(const std::string &contents)
-{
-}
 
 
 /*
   Fetch based on block id
 */
-Block::Block(const BlockId id)
+Block::Block(const string &in_crypto_key, const BlockId in_id)
+        : m_crypto_key(in_crypto_key), m_id(in_id)
 {
+}
+
+
+Block::~Block()
+{
+        // Clean up ACT queue if it exists (and warn of error, as this
+        // shouldn't happen).
+        if(m_act_queue.empty())
+                return;
+        cerr << "ACT queue contains " << m_act_queue.size() << " objects at deletion.  (Expected zero.)" << endl;
+        while(!m_act_queue.empty()) {
+                // Clean them up anyway
+                ACT_Base *act = m_act_queue.front();
+                delete act;
+                m_act_queue.pop();
+        }
 }
 
 
@@ -81,5 +91,23 @@ void Block::completion_action()
 }
 
 
+/*
+  Create new based on contents
+*/
+DataBlock::DataBlock(const string &in_crypto_key, const string &in_contents)
+        : Block(in_crypto_key)
+{
+        string augmented_content = pseudo_random_string(11) + in_contents;
+        m_cipher_text = encrypt(compress(augmented_content), m_crypto_key);
+}
 
+
+/*
+  Return plain text of block.
+*/
+string DataBlock::plain_text() const
+{
+        string augmented_text = decompress(decrypt(m_cipher_text, m_crypto_key));
+        return augmented_text.substr(11);
+}
 

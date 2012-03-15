@@ -38,6 +38,7 @@ cryptar : main.o $(HEADER) $(OBJECT) Makefile
 	$(GCC) -o cryptar main.o $(OBJECT) $(LIBS)
 
 TESTS = 			\
+	block_test		\
 	communicate_test	\
 	compress_test		\
 	crypt_test 		\
