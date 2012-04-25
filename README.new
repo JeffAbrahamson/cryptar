@@ -48,11 +48,11 @@ from the local host to the remote store.
 
 Serialisation Details
 
-Block id's 320 bit random strings.  The word "serialise" should here
-be understood to mean "serialise in the ordinary sense, then compress,
-then encrypt".  To augment a block means to prepend 11 bytes of random
-data to the beginning (before serialisation).  The number 11 is
-arbitrary, the point is to make the same block compress and encrypt
+Block id's are 320 bit random strings.  The word "serialise" should
+here be understood to mean "serialise in the ordinary sense, then
+compress, then encrypt".  To augment a block means to prepend 11 bytes
+of random data to the beginning (before serialisation).  The number 11
+is arbitrary, the point is to make the same block compress and encrypt
 differently should it appear in multiple files.  Since we know
 checksums of blocks, we can recognise a block regardless of its
 padding, but two users uploading the same file will not upload the
