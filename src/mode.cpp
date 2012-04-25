@@ -21,7 +21,7 @@
 #include <iostream>
 #include <map>
 
-#include "cryptar.h"
+#include "mode.h"
 
 
 using namespace cryptar;

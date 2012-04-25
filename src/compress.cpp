@@ -23,7 +23,8 @@
 #include <stdexcept>
 #include <string>
 
-#include "cryptar.h"
+#include "compress.h"
+#include "mode.h"
 
 
 using namespace cryptar;

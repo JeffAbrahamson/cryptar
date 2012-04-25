@@ -102,7 +102,7 @@
 // #define CIPHER Twofish
 // #define CIPHER XTEA
 
-#include "cryptar.h"
+#include "crypt.h"
 
 
 using namespace cryptar;

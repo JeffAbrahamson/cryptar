@@ -23,7 +23,9 @@
 #include <fstream>
 #include <iostream>
 
-#include "cryptar.h"
+#include "block.h"
+#include "compress.h"
+#include "crypt.h"
 
 
 using namespace cryptar;

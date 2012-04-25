@@ -21,7 +21,8 @@
 #include <boost/thread.hpp>
 #include <cassert>
 
-#include "cryptar.h"
+#include "communicate.h"
+#include "mode.h"
 
 
 using namespace cryptar;

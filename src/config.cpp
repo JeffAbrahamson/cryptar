@@ -20,7 +20,7 @@
 
 #include <string>
 
-#include "cryptar.h"
+#include "config.h"
 
 using namespace cryptar;
 using namespace std;

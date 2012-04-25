@@ -19,10 +19,12 @@
 
 
 #include <assert.h>
+#include <iostream>
 #include <sys/stat.h>
+#include <string.h>
 #include <sys/types.h>
 
-#include "cryptar.h"
+#include "stage.h"
 
 
 using namespace cryptar;

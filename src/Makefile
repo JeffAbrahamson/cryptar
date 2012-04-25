@@ -66,7 +66,7 @@ header_test :
 	./build-test-header
 
 clean :
-	rm -f $(OBJECT) *.o *~ cryptar TAGS *_test
+	rm -f $(OBJECT) *.o *~ cryptar TAGS *_test tmp_h_test_*
 	rm -rf /tmp/cryptar-$LOGNAME-[0-9]*-[0-9]*
 
 TAGS : *cpp *h
