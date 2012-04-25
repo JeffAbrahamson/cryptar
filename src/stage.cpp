@@ -18,20 +18,27 @@
 */
 
 
+#include <assert.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "cryptar.h"
+
+
+using namespace cryptar;
+using namespace std;
 
 
 
 /*
   Directory where we should stage files.
 */
-StageFS::StageFS(const string &in_base_dir)
+StageOutFS::StageOutFS(const string &in_base_dir)
         : m_base_dir(in_base_dir)
 {
-        if(mkdir(m_dir_name.c_str(), 0700) && EEXIST != errno) {
+        if(mkdir(m_base_dir.c_str(), 0700) && EEXIST != errno) {
                 cerr << "  Error creating directory \""
-                     << m_dir_name << "\": " << strerror(errno) << endl;
+                     << m_base_dir << "\": " << strerror(errno) << endl;
                 throw(runtime_error("Failed to create staging directory."));
                 // ################ should try harder (mkdir -p)
         }
@@ -39,14 +46,35 @@ StageFS::StageFS(const string &in_base_dir)
 
 
 
-void StageFS::write(Block *bp)
+void StageOutFS::operator()(Block *bp) const
 {
-        
+        assert(bp);
+        bp->write(m_base_dir);
 }
 
 
 
-Block *StageFS::read()
+/*
+  Directory where we should stage files.
+*/
+StageInFS::StageInFS(const string &in_base_dir)
+        : m_base_dir(in_base_dir)
 {
+        if(mkdir(m_base_dir.c_str(), 0700) && EEXIST != errno) {
+                cerr << "  Error creating directory \""
+                     << m_base_dir << "\": " << strerror(errno) << endl;
+                throw(runtime_error("Failed to create staging directory."));
+                // ################ should try harder (mkdir -p)
+        }
 }
+
+
+
+void StageInFS::operator()(Block *bp) const
+{
+        assert(bp);
+        bp->read(m_base_dir);
+}
+
+
 

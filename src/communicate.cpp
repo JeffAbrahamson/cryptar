@@ -18,7 +18,6 @@
 */
 
 
-
 #include <boost/thread.hpp>
 #include <cassert>
 
@@ -43,9 +42,13 @@ namespace {
   This owns the pointers.  Don't use the same Stage or Config for
   other purposes.
 */
-Communicator::Communicator(const Stage *in_stage, const Config *in_config)
+Communicator::Communicator(const Stage *in_stage,
+                           const Transport *in_transport,
+                           const Config *in_config)
         : m_batch_size(mode(Testing) ? communicator_test_batch_size : communicator_prod_batch_size),
-          m_stage(in_stage), m_config(in_config), m_needed(true)
+          m_stage(in_stage),
+          m_transport(in_transport),
+          m_config(in_config), m_needed(true)
 {
         //m_batch_size = mode(Testing) ? communicator_test_batch_size : communicator_prod_batch_size;
         if(mode(Threads))
@@ -173,8 +176,14 @@ void Communicator::comm_batch()
         // We stage, transport, and then call completion routines
         for_each(blocks_to_stage.begin(),
                  blocks_to_stage.end(),
-                 bind1st(mem_fun(&Stage::write), m_stage));
-        // ################ transport here ################
+                 //bind1st(mem_fun(&Stage::write), m_stage));
+                 ref(*m_stage));
+        m_transport->pre();
+        for_each(blocks_to_stage.begin(),
+                 blocks_to_stage.end(),
+                 //bind1st(mem_fun(&Transport::transport), m_transport));
+                 ref(*m_transport));
+        m_transport->post();
         for_each(blocks_to_stage.begin(),
                  blocks_to_stage.end(),
                  boost::bind(&Block::completion_action, _1));

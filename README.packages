@@ -15,3 +15,7 @@ installed, even though you've installed g++.
   libboost-test1.46.1
   libboost-thread1.46-dev
   libboost-thread1.46.1
+  libboost-filesystem1.46-dev
+  libboost-filesystem1.46.1
+  libboost-system1.46-dev
+  libboost-system1.46.1

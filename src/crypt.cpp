@@ -109,6 +109,32 @@ using namespace cryptar;
 using namespace std;
 
 
+typedef byte crypto_key_type[CryptoPP::CIPHER::DEFAULT_KEYLENGTH];
+typedef byte crypto_iv_type[CryptoPP::CIPHER::BLOCKSIZE];
+
+
+namespace {
+
+        /*
+          Initialize the key and iv given the password.
+        */
+        void init_key_iv(const string password, crypto_key_type &key, crypto_iv_type &iv)
+        {
+                // Key and IV setup.
+                // IV is just hash of key
+                bzero(key, CryptoPP::CIPHER::DEFAULT_KEYLENGTH);
+                size_t key_len = min(static_cast<size_t>(CryptoPP::CIPHER::DEFAULT_KEYLENGTH),
+                                     password.size());
+                memcpy(key, password.c_str(), key_len);
+                
+                bzero(iv, CryptoPP::CIPHER::BLOCKSIZE);
+                string iv_string = message_digest(password);
+                size_t iv_len = min(static_cast<size_t>(CryptoPP::CIPHER::DEFAULT_KEYLENGTH),
+                                    iv_string.size());
+                memcpy(iv, iv_string.c_str(), iv_len);
+        }
+}
+
 
 /*
   Compute hash (SHA-256) of a message.  Return base64-encoded string
@@ -158,33 +184,31 @@ string cryptar::pseudo_random_string(int length)
 }
 
 
+/*
+  Return a filename based on some optional random bits.
+  Random bits produced if none provided.
+*/
+string cryptar::random_filename(string in_random)
+{
+        if(in_random == "")
+                in_random = pseudo_random_string();
 
-typedef byte crypto_key_type[CryptoPP::CIPHER::DEFAULT_KEYLENGTH];
-typedef byte crypto_iv_type[CryptoPP::CIPHER::BLOCKSIZE];
-
-
-
-namespace {
-
+        string digest;
+        CryptoPP::StringSource(in_random, true,
+                               new CryptoPP::Base64Encoder(new CryptoPP::StringSink(digest)));
+        replace(digest.begin(), digest.end(), '/', '_');
         /*
-          Initialize the key and iv given the password.
+          The digest ends with a newline character (on linux).  It's
+          not nice to make files with embedded newlines, although at
+          least on linux it doesn't hurt (except the humans).
+         
+          I don't know what happens on windows, we might be leaving a
+          half-newline?
         */
-        void init_key_iv(const string password, crypto_key_type &key, crypto_iv_type &iv)
-        {
-                // Key and IV setup.
-                // IV is just hash of key
-                bzero(key, CryptoPP::CIPHER::DEFAULT_KEYLENGTH);
-                size_t key_len = min(static_cast<size_t>(CryptoPP::CIPHER::DEFAULT_KEYLENGTH),
-                                     password.size());
-                memcpy(key, password.c_str(), key_len);
-                
-                bzero(iv, CryptoPP::CIPHER::BLOCKSIZE);
-                string iv_string = message_digest(password);
-                size_t iv_len = min(static_cast<size_t>(CryptoPP::CIPHER::DEFAULT_KEYLENGTH),
-                                    iv_string.size());
-                memcpy(iv, iv_string.c_str(), iv_len);
-        }
+        digest.erase(--digest.end());
+        return digest;
 }
+
 
 
 /*
@@ -259,3 +283,4 @@ string cryptar::decrypt(const string &cipher_text, const string &password)
         }   
         throw(runtime_error("decryption failed"));
 }
+

@@ -98,3 +98,18 @@ map<string, string> cryptar::orderly_text()
         return text;
 }
 
+
+/*
+  Provide the name of a temporary file that we can also use as a directory name.
+  Which is why I'm not using mktemp() and its kin.
+*/
+string cryptar::temp_file_name()
+{
+        ostringstream tmp_name_s;
+        const char *logname = getenv("LOGNAME");
+        tmp_name_s << "/tmp/cryptar-"
+                   << (logname ? logname : "unknown")
+                   << "-" << getpid() << "-" << time(0);
+        string tmp_name = tmp_name_s.str();
+        return tmp_name;
+}

@@ -60,13 +60,14 @@ namespace {
                 mode(Verbose, true);
                 mode(Testing, true);
                 mode(Threads, thread);
-                Communicator c(new NoStage(), new Config());
+                Communicator c(new NoStage(), new Transport(Config()), new Config());
                 string pass = ""; // doesn't matter here
 
                 // Start with 1 so that we can verify that ACT's have
                 // been initialized.
                 for(int i = 1; i <= 10; i++) {
-                        Block *bp = new Block(pass);
+                        //Block *bp = new Block(pass);
+                        Block *bp = block_empty<Block>(pass);
                         bp->completion_action(new ACT_Print(i));
                         c.push(bp);
                 }

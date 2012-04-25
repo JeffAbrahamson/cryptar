@@ -37,7 +37,7 @@ namespace cryptar {
 
         cryptar::vector_string test_text();
         std::map<std::string, std::string> orderly_text();
-
+        std::string temp_file_name();
         
         struct Messages {
 
@@ -71,18 +71,29 @@ namespace cryptar {
 
 
         /*
-          Staging class that does nothing on write().
-          But read() remains an error.
+          Staging class that does nothing on operator().
         */
         class NoStage : public Stage {
         public:
-                NoStage() { std::cout << "NoStage()" << std::endl; };
-                virtual ~NoStage() { std::cout << "~NoStage()" << std::endl; };
-                
-                virtual void write(Block *bp)
-                {
+                NoStage() {
+                        /*
                         if(mode(Verbose))
-                                std::cout << "NoStage::write()" << std::endl;
+                                std::cout << "NoStage()" << std::endl;
+                        */
+                };
+                virtual ~NoStage() {
+                        /*
+                        if(mode(Verbose))
+                                std::cout << "~NoStage()" << std::endl;
+                        */
+                };
+
+                virtual void operator()(Block *bp) const
+                {
+                        /*
+                        if(mode(Verbose))
+                                std::cout << "NoStage::operator()" << std::endl;
+                        */
                 };
         };
         

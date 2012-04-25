@@ -181,7 +181,9 @@ int main(int argc, char *argv[])
         }
 
         // Config needs to be populated correctly ################
-        Communicator send(new Stage, new Config);
-        Communicator receive(new Stage, new Config);
+        // I assuredly need to decide who owns these configs, and whether I really
+        // need them all.  Probably I could shift to a reference counted pointer.
+        Communicator send(new Stage, new TransportRsyncPush(Config()), new Config);
+        Communicator receive(new Stage, new TransportRsyncPull(Config()), new Config);
         return 0;
 }

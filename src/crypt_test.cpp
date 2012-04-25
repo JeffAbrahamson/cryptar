@@ -110,7 +110,32 @@ namespace {
                 BOOST_CHECK(0 == prs_error_count); // pseudo-random string
                 BOOST_CHECK(0 == md_error_count);  // message digest(,false)
                 BOOST_CHECK(0 == mdfs_error_count); // message_digest(,true)
-        }        
+        }
+
+
+        void test_filenames()
+        {
+                cout << "  [begin random filename test]" << endl;
+                // Same input, same output, short and human readable
+                string constant = "dog";
+                string dog_rand_1 = random_filename(constant);
+                string dog_rand_2 = random_filename(constant);
+                BOOST_CHECK(dog_rand_1 == dog_rand_2);
+
+                for(int i = 0; i < 100; ++i) {
+                        // Same input, same output
+                        string constant = pseudo_random_string(100);
+                        string rand_1 = random_filename(constant);
+                        string rand_2 = random_filename(constant);
+                        BOOST_CHECK(rand_1 == rand_2);
+                }
+                
+                for(int i = 0; i < 100; ++i) {
+                        string filename = random_filename();
+                        BOOST_CHECK_EQUAL(filename.size(), 56);
+                        BOOST_CHECK(filename.find("/") == string::npos);
+                }
+        }
 }
 
 
@@ -135,5 +160,12 @@ BOOST_AUTO_TEST_CASE(lengths)
 {
         test_lengths();
 }
+
+
+BOOST_AUTO_TEST_CASE(filenames)
+{
+        test_filenames();
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()

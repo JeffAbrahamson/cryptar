@@ -9,6 +9,8 @@ SRC = 				\
 	config.cpp		\
 	crypt.cpp		\
 	mode.cpp		\
+	stage.cpp		\
+	transport.cpp		\
 
 
 HEADER = cryptar.h
@@ -19,6 +21,8 @@ LIBS = 					\
 	-lboost_program_options		\
 	-lboost_serialization		\
 	-lboost_thread			\
+	-lboost_filesystem		\
+	-lboost_system			\
 	-lcrypto++			\
 	-lbz2				\
 

@@ -19,14 +19,27 @@
 
 
 
+#include <boost/filesystem.hpp>
+#include <fstream>
+#include <iostream>
+
 #include "cryptar.h"
 
 
 using namespace cryptar;
 using namespace std;
 
-Block::Block(const string &in_crypto_key)
-         : m_crypto_key(in_crypto_key)
+
+
+Block::Block(const CreateEmpty, const string &in_crypto_key)
+        : m_crypto_key(in_crypto_key)
+{
+        m_id = pseudo_random_string();
+}
+
+
+Block::Block(const CreateEmpty, const string &in_crypto_key, string &in_persist_dir)
+         : m_crypto_key(in_crypto_key), m_persist_dir(in_persist_dir)
 {
         m_id = pseudo_random_string();
 }
@@ -36,8 +49,20 @@ Block::Block(const string &in_crypto_key)
 /*
   Fetch based on block id
 */
-Block::Block(const string &in_crypto_key, const BlockId in_id)
+Block::Block(const CreateById, const string &in_crypto_key, const BlockId &in_id)
         : m_crypto_key(in_crypto_key), m_id(in_id)
+{
+}
+
+
+/*
+  Fetch based on block id
+*/
+Block::Block(const CreateById,
+             const string &in_crypto_key,
+             const BlockId &in_id,
+             string &in_persist_dir)
+        : m_crypto_key(in_crypto_key), m_id(in_id), m_persist_dir(in_persist_dir)
 {
 }
 
@@ -92,10 +117,97 @@ void Block::completion_action()
 
 
 /*
+  Write the cipher text to a file whose name is based on the block id.
+  
+  It is still an open question whether the flat flag is needed.  It
+  surely isn't for the rsync transport.  It might be needed for an
+  eventual cloud service provider transport, so keep it for now.  Note
+  that flat == true is probably inadequately tested.
+*/
+void Block::write(const string &in_dir, bool flat) const
+{
+        string filename = id_to_pathname(in_dir, flat);
+        ofstream fs(filename, ios_base::binary | ios_base::trunc);
+        fs.write(m_cipher_text.data(), m_cipher_text.size());
+        if(!fs) {
+                const size_t len = 1024; // arbitrary
+                char errstr[len];
+#if (_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && ! _GNU_SOURCE
+                strerror_r(errno, errstr, len);
+#else
+                if(strerror_r(errno, errstr, len))
+                        throw("strerror_r() error in Block::write() error");
+#endif
+                cerr << "Block write error: " << errstr << endl;
+                throw("Block::write()");
+        }
+        fs.close();
+}
+
+
+/*
+  Read a staged block into memory.
+  Find it by it's id.
+*/
+void Block::read(const string &in_dir, bool flat)
+{
+        string filename = id_to_pathname(in_dir, flat);
+        ifstream fs(filename, ios_base::binary);
+        if(!fs) {
+                const size_t len = 1024; // arbitrary
+                char errstr[len];
+#if (_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && ! _GNU_SOURCE
+                perror(0);
+                cout << "(just called perror(0))" << "  errno=" << errno << endl;
+                cout << "filename=" << filename << endl;
+                if(strerror_r(errno, errstr, len))
+                        throw("strerror_r() error in Block::read() error");
+#else
+                strerror_r(errno, errstr, len);
+#endif
+                cerr << "Block read error: " << errstr << endl;
+                throw("Block::read()");
+        }
+        fs.seekg(0, ios::end);
+        int length = fs.tellg();
+        fs.seekg(0, ios::beg);
+        char *buffer = new char[length];
+        fs.read(buffer, length);
+        m_cipher_text = string(buffer, length);
+        fs.close();
+}
+
+
+string Block::id_to_pathname(const string &in_dir, bool flat) const
+{
+        boost::filesystem::path filename;
+        string filename_for_id = random_filename(m_id);
+        if(flat)
+                filename = boost::filesystem::path(in_dir + "-" + filename_for_id);
+        else
+                filename /= boost::filesystem::path(in_dir) / filename_for_id;
+        return filename.string();
+}
+
+
+/*
   Create new based on contents
 */
-DataBlock::DataBlock(const string &in_crypto_key, const string &in_contents)
-        : Block(in_crypto_key)
+DataBlock::DataBlock(const CreateById,
+                     const string &in_crypto_key,
+                     const string &in_id)
+        : Block(CreateById(), in_crypto_key, in_id)
+{
+}
+
+
+/*
+  Create new based on contents
+*/
+DataBlock::DataBlock(const CreateByContent,
+                     const string &in_crypto_key,
+                     const string &in_contents)
+        : Block(CreateEmpty(), in_crypto_key)
 {
         string augmented_content = pseudo_random_string(11) + in_contents;
         m_cipher_text = encrypt(compress(augmented_content), m_crypto_key);

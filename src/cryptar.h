@@ -50,6 +50,10 @@ namespace cryptar {
 
         // Return a (not necessarily human readable) string of random bits.
         std::string pseudo_random_string(int length = 40);
+
+        // Return a filename based on some optional random bits.
+        // Random bits produced if none provided.
+        std::string random_filename(const std::string in_random = "");
         
         // Crypto++ is documented at http://www.cryptopp.com/
         // and http://www.cryptopp.com/fom-serve/cache/1.html
@@ -148,11 +152,11 @@ namespace cryptar {
           In another dimension, they represent pieces of files, images
           (collections of pieces), or timelines (sequences of images).
         */
-        
+
         typedef std::string BlockId;
         //class ACT_Base;
 
-
+        
         /*
           Basic block, from which all blocks derive.
           I don't think anything should need to instantiate this directly,
@@ -165,30 +169,105 @@ namespace cryptar {
                 // communicate_test.cpp does, and I'm not yet sure what the best answer
                 // is.
         public:
-                Block(const std::string &in_crypto); // create empty (for use by derived classes)
-                //Block(const std::string &in_crypto, const std::string &in_contents); // create new based on contents
-                Block(const std::string &in_crypto_key, const BlockId in_id); // fetch based on block id
+                struct CreateEmpty {};
+                struct CreateById {};
+                struct CreateByContent{};
+                
+                // create empty (for use by derived classes)
+                Block(const CreateEmpty, const std::string &in_crypto);
+                Block(const CreateEmpty,
+                      const std::string &in_crypto,
+                      std::string &in_persist_dir);
+                /*
+                // create new based on contents
+                Block(const std::string &in_crypto, const std::string &in_contents);
+                */
+                // fetch based on block id
+                Block(const CreateById, const std::string &in_crypto_key, const BlockId &in_id);
+                Block(const CreateById,
+                      const std::string &in_crypto_key,
+                      const BlockId &in_id,
+                      std::string &in_persist_dir);
                 virtual ~Block();
 
         public:
                 bool action_pending() const { return !m_act_queue.empty(); }
                 void completion_action(ACT_Base *);
                 void completion_action();
-                void write();
+                void write(const std::string &in_dir, bool flat = false) const;
+                void read(const std::string &in_dir, bool flat = false);
 
+                const BlockId &id() const { return m_id; }
+                
         protected:
                 std::string m_cipher_text;
                 const std::string m_crypto_key;
-                BlockId m_id;        private:
+                BlockId m_id;
+
+                
+        private:
+                /*
+                  When we are asked to persist, we are handed a
+                  directory to which we should persist.  A staging
+                  object may desire that blocks distribute themselves
+                  in a hierarchy, in which case write() is called with
+                  flat == false.  Then we use m_persist_dir in
+                  addition to the staging directory requested by the
+                  caller of write().
+                */
+                const std::string m_persist_dir;
 
                 std::queue<ACT_Base *> m_act_queue;
+
+                std::string id_to_pathname(const std::string &in_dir, bool flat) const;
         };
 
 
+        /*
+          Block ID's and contents are both strings, so use factory
+          functions to hide some notation.
+        */
+        template<typename T> T *block_empty(const std::string &in_crypto)
+                {
+                        return new T(Block::CreateEmpty(), in_crypto);
+                }
+
+        template<typename T> T *block_by_content(const std::string &in_crypto,
+                                                 const std::string &in_content)
+                {
+                        return new T(Block::CreateByContent(), in_crypto, in_content);
+                }
+        template<typename T> T *block_by_content(const std::string &in_crypto,
+                                                 const std::string &in_content,
+                                                 const std::string &in_persist_dir)
+                {
+                        return new T(Block::CreateByContent(), in_crypto, in_content, in_persist_dir);
+                }
+        template<typename T> T *block_by_id(const std::string &in_crypto,
+                                            const BlockId &in_id)
+                {
+                        return new T(Block::CreateById(), in_crypto, in_id);
+                }
+        template<typename T> T *block_by_id(const std::string &in_crypto,
+                                            const BlockId &in_id,
+                                            const std::string &in_persist_dir)
+                {
+                        return new T(Block::CreateById(), in_crypto, in_id, in_persist_dir);
+                }
+
+
+        /*
+          A block that simply persists and restores itself (with encryption).
+          It has no idea of internal structure.  It is a leaf node in the tree.
+        */
         class DataBlock : public Block {
         public:
-                //DataBlock(const std::string &in_crypto_key, const BlockId id);
-                DataBlock(const std::string &in_crypto_key, const std::string &in_data);       // create with content
+                DataBlock(const CreateById,
+                          const std::string &in_crypto_key,
+                          const BlockId &id);
+                DataBlock(const CreateByContent,
+                          const std::string &in_crypto_key,
+                          const std::string &in_data);
                 virtual ~DataBlock() {};
 
                 std::string plain_text() const;
@@ -199,23 +278,23 @@ namespace cryptar {
 
         class HeadBlock : public Block {
         public:
-                HeadBlock(const std::string &filename);
-                HeadBlock(const BlockId id);
+                HeadBlock(const CreateByContent, const std::string &filename);
+                HeadBlock(const CreateById, const BlockId &in_id);
                 virtual ~HeadBlock();
         };
         
         class FileHeadBlock : public HeadBlock {
         public:
-                FileHeadBlock(const std::string &filename);
-                FileHeadBlock(const BlockId id);
+                FileHeadBlock(const CreateByContent, const std::string &filename);
+                FileHeadBlock(const CreateById, const BlockId &in_id);
                 virtual ~FileHeadBlock();
 
         };
 
         class DirectoryHeadBlock : public HeadBlock {
         public:
-                DirectoryHeadBlock(const std::string &filename);
-                DirectoryHeadBlock(const BlockId id);
+                DirectoryHeadBlock(const CreateByContent, const std::string &filename);
+                DirectoryHeadBlock(const CreateById, const BlockId &in_id);
                 virtual ~DirectoryHeadBlock();
                 
         };
@@ -225,7 +304,7 @@ namespace cryptar {
         
         class FileTimelineBlock : public TimeLineBlock {
         public:
-                FileTimelineBlock(const BlockId id);
+                FileTimelineBlock(const CreateById, const BlockId &in_id);
                 virtual ~FileTimelineBlock();
 
                 void trim_by_date(time_t when);
@@ -235,8 +314,8 @@ namespace cryptar {
 
         class DirectoryTimelineBlock : public TimeLineBlock {
         public:
-                DirectoryTimelineBlock(const std::string &filename);
-                DirectoryTimelineBlock(const BlockId id);
+                DirectoryTimelineBlock(const CreateByContent, const std::string &filename);
+                DirectoryTimelineBlock(const CreateById, const BlockId &in_id);
                 virtual ~DirectoryTimelineBlock();
                 
                 void trim_by_date(time_t when);
@@ -312,33 +391,40 @@ namespace cryptar {
                   require staging to disk first, write() could also do
                   the transfer, in which case the corresponding
                   transport function would be a noop.
-                */
-                virtual void write(Block *bp) {
-                        throw(std::logic_error("Calling Stage::write() directly"));
-                              }
-                /*
+
+                  Alternatively, read a block based on the BlockId.
                   The reverse of write().  Instantiate a block that
                   has been fetched from the remote.  If the transport
                   routines don't need to stage to disk first, read()
                   could also do the transfer, in which case the
                   corresponding transport function would be a noop.
-                 */
-                virtual Block *read() {
-                                throw(std::logic_error("Calling Stage::read() directly"));
-                                      }
+                */
+                virtual void operator()(Block *in_bp) const {
+                        throw(std::logic_error("Calling Stage::operator()() directly"));
+                              }
 
                 /* Clean the staging area. */
                 virtual void clean() {};
         };
 
 
-        class StageFS : public Stage {
+        class StageOutFS : public Stage {
         public:
-                StageFS(const std::string &in_base_dir);
-                virtual ~StageFS() {};
+                StageOutFS(const std::string &in_base_dir);
+                virtual ~StageOutFS() {};
+                virtual void operator()(Block *in_bp) const;
+                
+        private:
+                std::string m_base_dir;
+        };
 
-                virtual void write(Block *bp);
-                virtual Block *read();
+
+        class StageInFS : public Stage {
+        public:
+                StageInFS(const std::string &in_base_dir);
+                virtual ~StageInFS() {};
+
+                virtual void operator()(Block *in_bp) const;
                 
         private:
                 std::string m_base_dir;
@@ -354,46 +440,48 @@ namespace cryptar {
         */
         class Transport {
         public:
-                Transport(Config &config) {};
+                Transport(const Config &in_config);
                 virtual ~Transport() {};
 
-                // An action to take before pushing anything.
-                virtual void pre_push() {};
-                // An action to push a block to the remote store.
-                virtual void push(Block *bp) {};
-                // An action to take after all blocks are pushed.
-                virtual void post_push() {};
+                // An action to take before transporting anything.
+                virtual void pre() const {};
+                // An action to transport a block
+                virtual void operator()(Block *bp) const {};
+                // An action to take after all blocks are transported.
+                virtual void post() const {};
                 
-                // An action to take before pulling anything.
-                virtual void pre_pull() {};
-                // An action to pull a block to the remote store.
-                virtual void pull(Block *bp) {};
-                // An action to take after all blocks are pulled.
-                virtual void post_pull() {};
-
         protected:
                 Config m_config;
         };
 
 
-        class TransportRsync {
+        class TransportRsyncPush : public Transport {
         public:
-                TransportRsync(Config &config) {};
-                virtual ~TransportRsync() {};
+                TransportRsyncPush(const Config &config)
+                        : Transport(config) {};
+                virtual ~TransportRsyncPush() {};
 
-                // An action to take before pushing anything.
-                virtual void pre_push() {};
-                // An action to push a block to the remote store.
-                virtual void push(Block *bp) {};
-                // An action to take after all blocks are pushed.
-                virtual void post_push() {};
-                
-                // An action to take before pulling anything.
-                virtual void pre_pull() {};
-                // An action to pull a block to the remote store.
-                virtual void pull(Block *bp) {};
-                // An action to take after all blocks are pulled.
-                virtual void post_pull() {};
+                // An action to take before transporting anything.
+                virtual void pre() const {};
+                // An action to transport a block
+                virtual void operator()(Block *bp) const {};
+                // An action to take after all blocks are transported.
+                virtual void post() const {};
+        };
+        
+
+        class TransportRsyncPull : public Transport {
+        public:
+                TransportRsyncPull(const Config &config)
+                        : Transport(config) {};
+                virtual ~TransportRsyncPull() {};
+
+                // An action to take before transporting anything.
+                virtual void pre() const {};
+                // An action to transport a block
+                virtual void operator()(Block *bp) const {};
+                // An action to take after all blocks are transported.
+                virtual void post() const {};
         };
         
 
@@ -405,7 +493,9 @@ namespace cryptar {
 
         class Communicator {
         public:
-                Communicator(const Stage *in_stage, const Config *in_config);
+                Communicator(const Stage *in_stage,
+                             const Transport *in_transport,
+                             const Config *in_config);
                 ~Communicator();
 
                 void push(Block *);
@@ -428,6 +518,7 @@ namespace cryptar {
                   So just use pointers.
                 */
                 const Stage *m_stage;
+                const Transport *m_transport;
                 const Config *m_config;
 
                 bool m_needed;    /* set to false to encourage auto-shutdown */
@@ -490,7 +581,7 @@ namespace cryptar {
         
         class FileSystem {
         public:
-                FileSystem(BlockId id);
+                FileSystem(const BlockId &id);
                 ~FileSystem();
 
                 FS_Node &find_by_name(std::string &filename);
