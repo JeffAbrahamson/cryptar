@@ -118,20 +118,20 @@ namespace {
                 cout << "  [begin random filename test]" << endl;
                 // Same input, same output, short and human readable
                 string constant = "dog";
-                string dog_rand_1 = random_filename(constant);
-                string dog_rand_2 = random_filename(constant);
+                string dog_rand_1 = filename_from_random_bits(constant);
+                string dog_rand_2 = filename_from_random_bits(constant);
                 BOOST_CHECK(dog_rand_1 == dog_rand_2);
 
                 for(int i = 0; i < 100; ++i) {
                         // Same input, same output
                         string constant = pseudo_random_string(100);
-                        string rand_1 = random_filename(constant);
-                        string rand_2 = random_filename(constant);
+                        string rand_1 = filename_from_random_bits(constant);
+                        string rand_2 = filename_from_random_bits(constant);
                         BOOST_CHECK(rand_1 == rand_2);
                 }
                 
                 for(int i = 0; i < 100; ++i) {
-                        string filename = random_filename();
+                        string filename = filename_from_random_bits();
                         BOOST_CHECK_EQUAL(filename.size(), 56);
                         BOOST_CHECK(filename.find("/") == string::npos);
                 }

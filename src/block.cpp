@@ -183,7 +183,7 @@ void Block::read(const string &in_dir, bool flat)
 string Block::id_to_pathname(const string &in_dir, bool flat) const
 {
         boost::filesystem::path filename;
-        string filename_for_id = random_filename(m_id);
+        string filename_for_id = filename_from_random_bits(m_id);
         if(flat)
                 filename = boost::filesystem::path(in_dir + "-" + filename_for_id);
         else

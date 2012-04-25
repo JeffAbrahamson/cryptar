@@ -188,7 +188,7 @@ string cryptar::pseudo_random_string(int length)
   Return a filename based on some optional random bits.
   Random bits produced if none provided.
 */
-string cryptar::random_filename(string in_random)
+string cryptar::filename_from_random_bits(string in_random)
 {
         if(in_random == "")
                 in_random = pseudo_random_string();
