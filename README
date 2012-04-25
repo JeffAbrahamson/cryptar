@@ -44,3 +44,12 @@ anywhere that you can ssh to.
     	     ssh (i.e., you have some disk space and ssh shell access
     	     with your ISP) and for AWS.  Although I'm doing ssh
     	     first.
+
+	     I plan to make cryptar available as a library to IOS and
+	     android apps to provide drop-in encrypted cloud storage.
+
+	     Cryptar is licensed under the GPL, but I plan to offer
+	     dual licensing (in the style of Sleepycat or Mysql).
+	     This will probably involve a move from libbz2 to
+	     lizlzma2.
+
