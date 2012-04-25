@@ -42,6 +42,7 @@ cryptar : main.o $(HEADER) $(OBJECT) Makefile
 	$(GCC) -o cryptar main.o $(OBJECT) $(LIBS)
 
 TESTS = 			\
+	header_test		\
 	block_test		\
 	communicate_test	\
 	compress_test		\
@@ -61,11 +62,12 @@ test_text.o : test_text.h
 	$(GCC) -o $@ $^ $(TEST_LIBS) $(LIBS)
 	-./$@ $(LOG_LEVEL)
 
+header_test :
+	./build-test-header
+
 clean :
 	rm -f $(OBJECT) *.o *~ cryptar TAGS *_test
-
-#clean-test :
-#	rm -rf srd-test-*/ test_[0-9]*\.[0-9]*
+	rm -rf /tmp/cryptar-$LOGNAME-[0-9]*-[0-9]*
 
 TAGS : *cpp *h
 	etags *cpp *h

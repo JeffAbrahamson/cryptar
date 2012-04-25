@@ -1,0 +1,22 @@
+#!/bin/bash
+
+PATH=/usr/bin:/bin
+
+atexit() {
+    rm $test_file $test_file_o;
+    exit $1
+}
+    
+
+test_file=tmp_h_test_$$.cpp
+test_file_o=tmp_h_test_$$.o
+for f in *.h; do
+    echo Checking $f...
+    echo "#include \"$f\"" > $test_file
+    make $test_file_o
+    if [ 0 != $? ]; then
+	atexit $?
+    fi
+done
+atexit 0
+
