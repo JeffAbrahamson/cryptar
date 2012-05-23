@@ -53,10 +53,10 @@ namespace cryptar {
                 virtual ~FS_Node();
 
                 FS_Node &get_parent() const;
-                TimeLineBlock &get_timeline() const;
-                HeadBlock &get_head() const;
+                TimelineBlock &get_timeline() const;
+                /*Head*/Block &get_head() const;
                 StatInfo &stat() const;
-                bool is_dirt() const;
+                bool is_dirty() const;
                 void persist();
         };
 
@@ -80,9 +80,12 @@ namespace cryptar {
         /*
           A representation of the filesystem in the remote store.
         */
-        
+
+        class Config;           /* forward declaration, cf. config.h */
+
         class FileSystem {
         public:
+                FileSystem(const Config &config);
                 FileSystem(const BlockId &id);
                 ~FileSystem();
 
@@ -90,8 +93,15 @@ namespace cryptar {
                 FS_Node &find_by_hash(std::string &hash);
 
                 void persist();
-                
+
         private:
+                //unsigned int process_remote_tree_node(EmptyBlock *bp);
+                unsigned int process_remote_tree_node(InitBlock *bp);
+                unsigned int process_remote_tree_node(TimelineBlock *bp);
+                unsigned int process_remote_tree_node(FileHeadBlock *bp);
+                unsigned int process_remote_tree_node(DirectoryHeadBlock *bp);
+
+
                 // It's worth testing if these should be std::hash instead of std::map
                 // Map filename or file hash to vector of paths where found.
                 // A hash could map to a vector of length greater than one if
@@ -99,10 +109,12 @@ namespace cryptar {
                 std::map<std::string, std::vector<std::string> > m_names;
                 std::map<std::string, std::vector<std::string> > m_hashes;
 
+                Config &m_config;
+
                 /* Base directory for remote file system.
                 */
                 FS_Dir m_dir;
-                
+
                 /* Time for which the remote instance is instantiated.
                    If zero, then time is max time in each TimeLine.
                 */

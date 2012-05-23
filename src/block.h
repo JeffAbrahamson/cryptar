@@ -23,9 +23,11 @@
 #define __BLOCK_H__ 1
 
 
+#include <map>
 #include <stdexcept>
 #include <string>
 #include <queue>
+
 
 
 namespace cryptar {
@@ -61,7 +63,6 @@ namespace cryptar {
         */
 
         typedef std::string BlockId;
-        //class ACT_Base;
 
         
         /*
@@ -81,7 +82,8 @@ namespace cryptar {
                 struct CreateByContent{};
                 
                 // create empty (for use by derived classes)
-                Block(const CreateEmpty, const std::string &in_crypto);
+                Block(const CreateEmpty,
+                      const std::string &in_crypto);
                 Block(const CreateEmpty,
                       const std::string &in_crypto,
                       std::string &in_persist_dir);
@@ -90,14 +92,16 @@ namespace cryptar {
                 Block(const std::string &in_crypto, const std::string &in_contents);
                 */
                 // fetch based on block id
-                Block(const CreateById, const std::string &in_crypto_key, const BlockId &in_id);
+                Block(const CreateById,
+                      const std::string &in_crypto_key,
+                      const BlockId &in_id);
                 Block(const CreateById,
                       const std::string &in_crypto_key,
                       const BlockId &in_id,
                       std::string &in_persist_dir);
                 virtual ~Block();
 
-        public:
+        public:                 /* most should be protected? */
                 bool action_pending() const { return !m_act_queue.empty(); }
                 void completion_action(ACT_Base *);
                 void completion_action();
@@ -110,7 +114,8 @@ namespace cryptar {
                 std::string m_cipher_text;
                 const std::string m_crypto_key;
                 BlockId m_id;
-
+                bool m_dirty;   /* If true, block has been modified since fetch from store */
+                bool m_ready;   /* If false, block is being fetched, no data is valid. */
                 
         private:
                 /*
@@ -169,12 +174,12 @@ namespace cryptar {
         */
         class DataBlock : public Block {
         public:
-                DataBlock(const CreateById,
-                          const std::string &in_crypto_key,
-                          const BlockId &id);
                 DataBlock(const CreateByContent,
                           const std::string &in_crypto_key,
                           const std::string &in_data);
+                DataBlock(const CreateById,
+                          const std::string &in_crypto_key,
+                          const BlockId &id);
                 virtual ~DataBlock() {};
 
                 std::string plain_text() const;
@@ -183,33 +188,133 @@ namespace cryptar {
         };
         
 
+        class InitBlock : public Block {
+        public:
+                // CreateByContent may not make sense except empty?
+                InitBlock(const CreateByContent,
+                          const std::string &in_crypto_key,
+                          const std::string &in_data);
+                InitBlock(const CreateById,
+                          const std::string &in_crypto_key,
+                          const BlockId &in_id);
+                virtual ~InitBlock() {};
+
+                BlockId root_id(const std::string &in_name, const bool in_create = false);
+        };
+
+
+        /*
         class HeadBlock : public Block {
         public:
-                HeadBlock(const CreateByContent, const std::string &filename);
-                HeadBlock(const CreateById, const BlockId &in_id);
+                HeadBlock(const CreateByContent,
+                          const std::string &in_crypto_key,
+                          const std::string &in_filename);
+                HeadBlock(const CreateById,
+                          const std::string &in_crypto_key,
+                          const BlockId &in_id);
                 virtual ~HeadBlock();
         };
+        */
+
+
+        typedef unsigned long WeakChecksum;
+        typedef std::string StrongChecksum;
+
         
-        class FileHeadBlock : public HeadBlock {
+        class FileHeadBlock : public /*Head*/Block {
         public:
-                FileHeadBlock(const CreateByContent, const std::string &filename);
-                FileHeadBlock(const CreateById, const BlockId &in_id);
+                FileHeadBlock(const CreateByContent,
+                              const std::string &in_crypto_key,
+                              const std::string &filename);
+                FileHeadBlock(const CreateById,
+                              const std::string &in_crypto_key,
+                              const BlockId &in_id);
                 virtual ~FileHeadBlock();
 
+        private:
+                struct BlockTuple {
+                        const BlockId m_id;
+                        const WeakChecksum m_wcs;
+                        const StrongChecksum m_scs;
+                        const size_t base_offset;
+                        const size_t length;
+                        const std::string password;
+                };
+                std::vector<BlockTuple> m_remote_blocks; /* what we serialise to m_cipher_text */
+                // Resolve what I mean here, as filesystem.h is currently included after block.h
+                // FS_File *m_remote_file; /* NULL if not yet instantiated. */
         };
 
-        class DirectoryHeadBlock : public HeadBlock {
+
+        class DirectoryHeadBlock : public /*Head*/Block {
         public:
-                DirectoryHeadBlock(const CreateByContent, const std::string &filename);
-                DirectoryHeadBlock(const CreateById, const BlockId &in_id);
+                DirectoryHeadBlock(const CreateByContent,
+                                   const std::string &in_crypto_key,
+                                   const std::string &filename);
+                DirectoryHeadBlock(const CreateById,
+                                   const std::string &in_crypto_key,
+                                   const BlockId &in_id);
                 virtual ~DirectoryHeadBlock();
                 
         };
 
 
-        class TimeLineBlock : public Block {};
+        enum FileType {
+                // Do not renumber members of this enum.  Values are persisted.
+                Invalid = 0,
+                Regular = 1,
+                Directory = 2,
+                SymLink = 3,    /* Not yet supported */
+                Socket = 4,     /* Not yet supported */
+                Door = 5,       /* Solaris, not supported */
+                BlockSpecial = 6, /* Not supported */
+                CharacterSpecial = 7, /* Not supported */
+                Pipe = 8,             /* Not yet supported */
+        };
+
+        // Is there really a difference between File and Directory TimelineBlock's ?
+        class TimelineBlock : public Block {
+        public:
+                struct HeadBlockPointer {
+                        HeadBlockPointer();
+                        HeadBlockPointer(BlockId in_id, std::string &in_password);
+
+                        const BlockId m_id;
+                        const std::string m_crypto_key;
+                };
+
+                TimelineBlock(const CreateByContent,
+                              const std::string &in_crypto_key,
+                              const std::string &in_filename,
+                              const std::string &in_stream);
+                TimelineBlock(const CreateById,
+                              const std::string &in_crypto_key,
+                              const BlockId &in_id);
+                virtual ~TimelineBlock();
+
+                // Select the most recent head block with time less than or equal to in_when.
+                // Zero means most recent.
+                const BlockId *select_head(time_t in_when = 0);
+
+                // Remove head blocks before in_when
+                void trim_by_time(time_t in_when);
+
+                // Remove all but in_count most recent head blocks
+                void trim_by_count(int in_count);
+
+                const FileType file_type() const { return m_file_type; }
+
+        private:
+                // Begin persisted data
+                std::map<const time_t, const HeadBlockPointer> m_head_blocks;
+                FileType m_file_type; /* requires support in FileSystem.cpp */
+                // End persisted data
+        };
         
-        class FileTimelineBlock : public TimeLineBlock {
+
+        // Obsolete, I think
+        /*
+        class FileTimelineBlock : public TimelineBlock {
         public:
                 FileTimelineBlock(const CreateById, const BlockId &in_id);
                 virtual ~FileTimelineBlock();
@@ -219,7 +324,7 @@ namespace cryptar {
         };
 
 
-        class DirectoryTimelineBlock : public TimeLineBlock {
+        class DirectoryTimelineBlock : public TimelineBlock {
         public:
                 DirectoryTimelineBlock(const CreateByContent, const std::string &filename);
                 DirectoryTimelineBlock(const CreateById, const BlockId &in_id);
@@ -228,7 +333,7 @@ namespace cryptar {
                 void trim_by_date(time_t when);
                 void trim_by_count(int count);
         };
-
+        */
 }
 
 #endif  /* __BLOCK_H__*/

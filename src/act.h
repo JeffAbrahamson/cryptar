@@ -41,14 +41,14 @@ namespace cryptar {
         */
 
         /*
-          ACT that selects a Head object from a TimeLine and queues
+          ACT that selects a Head object from a Timeline and queues
           fetching it.
         */
-        class TimeLine_HeadSelector : public ACT_Base {
+        class Timeline_HeadSelector : public ACT_Base {
                 // Select most recent Head less than or equal to time.
                 // If time is zero, select the most recent Head.
-                TimeLine_HeadSelector(TimeLineBlock *tlb, time_t time);
-                ~TimeLine_HeadSelector();
+                Timeline_HeadSelector(TimelineBlock *tlb, time_t time);
+                ~Timeline_HeadSelector();
 
                 virtual void operator()();
         };
@@ -61,7 +61,7 @@ namespace cryptar {
           levels has no effect.
         */
         class Head_FetchBlocks : public ACT_Base  {
-                Head_FetchBlocks(HeadBlock *hb, int levels = 0);
+                Head_FetchBlocks(/*Head*/Block *hb, int levels = 0);
                 ~Head_FetchBlocks();
 
                 virtual void operator()();
@@ -72,7 +72,7 @@ namespace cryptar {
           ACT that inserts a file into a filesystem object.
         */
         class Head_InsertFS : public ACT_Base  {
-                Head_InsertFS(HeadBlock *hb, FS_Node *fsn);
+                Head_InsertFS(/*Head*/Block *hb, FS_Node *fsn);
                 ~Head_InsertFS();
 
                 virtual void operator()();
@@ -91,7 +91,7 @@ namespace cryptar {
 
 
         /*
-          ACT to call a trigger on a Head or TimeLine object.
+          ACT to call a trigger on a Head or Timeline object.
           Calls other->act().
           For example, the head object can do something when all of
           its blocks have been fetched via

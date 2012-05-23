@@ -32,16 +32,22 @@ using namespace cryptar;
 using namespace std;
 
 
+/******************************************************************************/
+/* Block */
 
 Block::Block(const CreateEmpty, const string &in_crypto_key)
-        : m_crypto_key(in_crypto_key)
+        : m_crypto_key(in_crypto_key),
+          m_dirty(true), m_ready(true)
 {
         m_id = pseudo_random_string();
 }
 
 
 Block::Block(const CreateEmpty, const string &in_crypto_key, string &in_persist_dir)
-         : m_crypto_key(in_crypto_key), m_persist_dir(in_persist_dir)
+        : m_crypto_key(in_crypto_key),
+          m_dirty(true),
+          m_ready(true),
+          m_persist_dir(in_persist_dir)
 {
         m_id = pseudo_random_string();
 }
@@ -52,8 +58,9 @@ Block::Block(const CreateEmpty, const string &in_crypto_key, string &in_persist_
   Fetch based on block id
 */
 Block::Block(const CreateById, const string &in_crypto_key, const BlockId &in_id)
-        : m_crypto_key(in_crypto_key), m_id(in_id)
+        : m_crypto_key(in_crypto_key), m_id(in_id), m_dirty(false), m_ready(false)
 {
+        // Here trigger fetch from remote
 }
 
 
@@ -64,8 +71,13 @@ Block::Block(const CreateById,
              const string &in_crypto_key,
              const BlockId &in_id,
              string &in_persist_dir)
-        : m_crypto_key(in_crypto_key), m_id(in_id), m_persist_dir(in_persist_dir)
+        : m_crypto_key(in_crypto_key),
+          m_id(in_id),
+          m_dirty(false),
+          m_ready(false),
+          m_persist_dir(in_persist_dir)
 {
+        // Here trigger fetch from remote
 }
 
 
@@ -192,16 +204,8 @@ string Block::id_to_pathname(const string &in_dir, bool flat) const
 }
 
 
-/*
-  Create new based on contents
-*/
-DataBlock::DataBlock(const CreateById,
-                     const string &in_crypto_key,
-                     const string &in_id)
-        : Block(CreateById(), in_crypto_key, in_id)
-{
-}
-
+/******************************************************************************/
+/* DataBlock */
 
 /*
   Create new based on contents
@@ -217,6 +221,17 @@ DataBlock::DataBlock(const CreateByContent,
 
 
 /*
+  Create new based on ID
+*/
+DataBlock::DataBlock(const CreateById,
+                     const string &in_crypto_key,
+                     const string &in_id)
+        : Block(CreateById(), in_crypto_key, in_id)
+{
+}
+
+
+/*
   Return plain text of block.
 */
 string DataBlock::plain_text() const
@@ -225,3 +240,67 @@ string DataBlock::plain_text() const
         return augmented_text.substr(11);
 }
 
+
+/******************************************************************************/
+/* HeadBlock */
+
+// No implementation currently needed for HeadBlock, just useful to
+// exist in the inheritance hierarchy.
+
+
+
+/******************************************************************************/
+/* FileHeadBlock */
+
+
+/*
+  Create new based on contents
+*/
+FileHeadBlock::FileHeadBlock(const CreateByContent in,
+                             const string &in_crypto_key,
+                             const string &in_filename)
+        : /*Head*/Block(CreateEmpty(), in_crypto_key)
+//: m_remote_file(0)
+{
+        // Queue retrieval of remote file (if it exists).  ACT will
+        // set the remaining bits in motion.
+
+        // If remote file doesn't exist, instantiate trivial covering.
+        // If remote file does exist and local has changed, compute minimal covering.
+        // Queue any new covering blocks for staging and transfer.
+        // Note that done on transfer ack.
+}
+
+
+
+/*
+  Create new based on ID
+*/
+FileHeadBlock::FileHeadBlock(const CreateById in,
+                             const string &in_crypto_key,
+                             const BlockId &in_id)
+        : /*Head*/Block(in, in_crypto_key, in_id)
+{
+        // Queue retrieval of remote file (if it exists).
+        // If doesn't exist, flag error.
+        // Else note that ready once ack.
+}
+
+
+FileHeadBlock::~FileHeadBlock()
+{
+}
+
+
+TimelineBlock::HeadBlockPointer::HeadBlockPointer()
+  : m_id(pseudo_random_string()),
+    m_crypto_key(pseudo_random_string())
+{
+}
+
+
+TimelineBlock::HeadBlockPointer::HeadBlockPointer(BlockId in_id, string &in_password)
+        : m_id(in_id),
+          m_crypto_key(in_password)
+{
+}
