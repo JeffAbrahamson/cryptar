@@ -24,9 +24,11 @@
 
 
 #include <map>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <queue>
+#include <vector>
 
 
 
@@ -77,6 +79,14 @@ namespace cryptar {
                 // communicate_test.cpp does, and I'm not yet sure what the best answer
                 // is.
         public:
+                enum BlockStatus {
+                        Invalid = 0x0,   // Block is being fetched, no data is valid
+                        Ready = 0x1,     // Data is fetched, block may be used
+                        Dirty = 0x2,     // Data has been modified but not yet synced
+                                         // back to the remote store.
+                        NotFound = 0x4,  // Block was not found in remote store
+                };
+
                 struct CreateEmpty {};
                 struct CreateById {};
                 struct CreateByContent{};
@@ -114,9 +124,8 @@ namespace cryptar {
                 std::string m_cipher_text;
                 const std::string m_crypto_key;
                 BlockId m_id;
-                bool m_dirty;   /* If true, block has been modified since fetch from store */
-                bool m_ready;   /* If false, block is being fetched, no data is valid. */
-                
+                BlockStatus m_status;
+
         private:
                 /*
                   When we are asked to persist, we are handed a
@@ -133,7 +142,14 @@ namespace cryptar {
 
                 std::string id_to_pathname(const std::string &in_dir, bool flat) const;
         };
-
+        typedef Block::BlockStatus BlockStatus;
+        
+        inline BlockStatus operator|(BlockStatus a, BlockStatus b) {
+                // The + avoids recursive call to operator|().
+                // http://stackoverflow.com/questions/4226960/type-safer-bitflags-in-c
+                return static_cast<BlockStatus>(+a | +b);
+        }
+        
 
         /*
           Block ID's and contents are both strings, so use factory
@@ -184,10 +200,15 @@ namespace cryptar {
 
                 std::string plain_text() const;
 
+                void set_content(const std::string &in_contents);
         private:
         };
         
 
+        /*
+          Not yet fully defined.  Represents an initial pointer into
+          the remote filesystem.
+        */
         class InitBlock : public Block {
         public:
                 // CreateByContent may not make sense except empty?
@@ -202,6 +223,44 @@ namespace cryptar {
                 BlockId root_id(const std::string &in_name, const bool in_create = false);
         };
 
+
+        /*
+          A block whose data is too big to push as a single chunk, so
+          it computes a covering of smaller blocks.  This block's data
+          is the set of block id's and offsets that form the covering.
+          This block is what implements the cryptar algorithm.
+
+          Not implemented yet: If the covering is itself too large, we
+          could store the covering in another CoverBlock and here
+          store only a pointer to the secondary CoverBlock.
+        */
+        class CoverBlock : public DataBlock {
+        public:
+                CoverBlock(const CreateByContent,
+                          const std::string &in_crypto_key,
+                          const std::string &in_data);
+                CoverBlock(const CreateById,
+                          const std::string &in_crypto_key,
+                          const BlockId &in_id);
+                //virtual ~CoverBlock();
+
+                void set_content(const std::string &in_contents);
+
+        private:
+                // Should window size really be compiled into the program?
+                static const unsigned int m_window_size; /* rsync window size, in bytes */
+                
+                // Point ourselves at local data.  To provide or
+                // consume the local data, derive from CoverBlock.
+                char *m_base;
+                unsigned long m_base_length;
+
+                // Remote data
+                std::vector<DataBlock *> m_data_blocks;
+                std::set<unsigned long> m_easy_checksums;
+                std::map<unsigned long, DataBlock *> m_crypto_checksums;
+        };
+        
 
         /*
         class HeadBlock : public Block {

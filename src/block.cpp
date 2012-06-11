@@ -32,12 +32,31 @@ using namespace cryptar;
 using namespace std;
 
 
+/*
+  On Playing with Blocks
+
+  Blocks represent data that (potentially) exists in both the local
+  and remote stores.  Block id's identify the block in the remote
+  store as well as in the locally running process.
+
+  Instantiating a block by id causes it to be fetched from the local
+  store.  The flag m_status flag is BlockStatus::Invalid until the
+  fetch completes.  On successful fetch, m_status ==
+  BlockStatus::Ready, if the block is not found m_status ==
+  BlockStatus::NotFound.
+
+  Instantiating a block by content causes a new id to be assigned and
+  the block to be pushed to the remote store.
+
+  To update a DataBlock, instantiate by id, then call SetContent().
+*/
+
 /******************************************************************************/
 /* Block */
 
 Block::Block(const CreateEmpty, const string &in_crypto_key)
         : m_crypto_key(in_crypto_key),
-          m_dirty(true), m_ready(true)
+          m_status(BlockStatus::Ready | BlockStatus::Dirty)
 {
         m_id = pseudo_random_string();
 }
@@ -45,8 +64,7 @@ Block::Block(const CreateEmpty, const string &in_crypto_key)
 
 Block::Block(const CreateEmpty, const string &in_crypto_key, string &in_persist_dir)
         : m_crypto_key(in_crypto_key),
-          m_dirty(true),
-          m_ready(true),
+          m_status(BlockStatus::Ready | BlockStatus::Dirty),
           m_persist_dir(in_persist_dir)
 {
         m_id = pseudo_random_string();
@@ -58,7 +76,7 @@ Block::Block(const CreateEmpty, const string &in_crypto_key, string &in_persist_
   Fetch based on block id
 */
 Block::Block(const CreateById, const string &in_crypto_key, const BlockId &in_id)
-        : m_crypto_key(in_crypto_key), m_id(in_id), m_dirty(false), m_ready(false)
+        : m_crypto_key(in_crypto_key), m_id(in_id), m_status(BlockStatus::Invalid)
 {
         // Here trigger fetch from remote
 }
@@ -73,8 +91,7 @@ Block::Block(const CreateById,
              string &in_persist_dir)
         : m_crypto_key(in_crypto_key),
           m_id(in_id),
-          m_dirty(false),
-          m_ready(false),
+          m_status(BlockStatus::Invalid),
           m_persist_dir(in_persist_dir)
 {
         // Here trigger fetch from remote
@@ -221,7 +238,11 @@ DataBlock::DataBlock(const CreateByContent,
 
 
 /*
-  Create new based on ID
+  Create new based on ID.
+  
+  Interpretting the encrypted data is left to those who derive from
+  DataBlock.  We have no idea what structure the data has, we can only
+  provide the plain text on request.
 */
 DataBlock::DataBlock(const CreateById,
                      const string &in_crypto_key,
@@ -233,12 +254,116 @@ DataBlock::DataBlock(const CreateById,
 
 /*
   Return plain text of block.
+
+  We don't store it.  The fewer copies of plain text we have floating
+  about, the better.
 */
 string DataBlock::plain_text() const
 {
         string augmented_text = decompress(decrypt(m_cipher_text, m_crypto_key));
         return augmented_text.substr(11);
 }
+
+
+/*
+  Set the DataBlock's contents (by providing plain text).
+*/
+void DataBlock::set_content(const string &in_contents)
+{
+        string augmented_content = pseudo_random_string(11) + in_contents;
+        m_cipher_text = encrypt(compress(augmented_content), m_crypto_key);
+}
+
+
+
+/******************************************************************************/
+/* CoverBlock */
+
+
+static const unsigned int m_window_size = 512;
+
+
+/*
+  Create new based on contents
+*/
+CoverBlock::CoverBlock(const CreateByContent,
+                     const string &in_crypto_key,
+                     const string &in_contents)
+        : DataBlock(CreateByContent(), in_crypto_key, in_contents),
+          m_base(0), m_base_length(0)
+{
+        // Steps for creating by contents:
+        // Compute a cover
+        // Create a set of DataBlock's for the cover
+        // Store pointers to the DataBlocks in m_data_blocks
+        // Persist the data blocks in remote store
+        // Populate m_easy_checksums and m_crypto_checksums
+}
+
+
+/*
+  Create new based on ID
+*/
+CoverBlock::CoverBlock(const CreateById,
+                     const string &in_crypto_key,
+                     const string &in_id)
+        : DataBlock(CreateById(), in_crypto_key, in_id), m_base(0), m_base_length(0)
+{
+        // To create by id, we fetch the block with an ACT that
+        // populates m_easy_checksums and m_crypto_checksums.  It is
+        // surely desirable to make it optional to fetch the the
+        // DataBlock's themselves (so maybe the map should point to
+        // BlockID's).
+}
+
+
+/*
+  Set content, which might mean for the first time, in which case
+  m_data_blocks, m_rolling_checksums, and m_crypto_checksums will all
+  be empty.
+*/
+void CoverBlock::set_content(const string &in_contents)
+{
+        /* // sketch of function:
+        assert(m_status & BlockStatus::Ready);
+        long i_prev = -1;
+        for(long i = 0; i < m_base_length - m_window_size, i++) {
+                auto rolling_cs = compute_rolling_checksum(rolling_cs, i, i_prev);
+                if(m_rolling_checksums.find(rolling_cs) != m_rolling_checksums.end()) {
+                        // hit on rolling checksum
+                        auto hard_cs = compute_crypto_checksum(i);
+                        auto it = m_crypto_checksums.find(hard_cs);
+                        if(it != m_crypto_checksums.end())
+                                m_data_blocks.push_back(*it);
+                }
+        }
+        // But we need to note the new offsets, so this isn't quite right
+        */
+}
+
+/*
+CoverBlock::compute_rolling_checksum(...);
+
+CoverBlock::compute_crypto_checksum(...);
+*/
+
+/*
+CoverBlock::rsync_algo_sketch()
+{
+        DataBlock *dbp = 0;
+        long file_offset = 0;
+        DataBlock *B[]; *B_new[];
+        if(file_offset < B[dbp].start) {
+                DataBlock *bp = make_block(offset);
+                B_new.append(bp);
+                file_offset += m_window_size;
+        } else if(B[dbp + 1].start > file_offset) {
+                B_new.append(B[dbp]);
+        }
+        return B_new;
+}
+*/
+
 
 
 /******************************************************************************/
