@@ -65,6 +65,14 @@ namespace cryptar {
                 std::string m_local_dir;
                 std::string m_remote_dir;
                 std::string m_remote_host;
+
+                /* The user's pass phrase transforms to a crypto key
+                   that lets us decrypt the config file (from which we
+                   destreamed a config object).  Here in the config
+                   object we store the crypto key to be able to read
+                   the root object in the remote store.
+                */
+                std::string m_crypto_key;
         };
 
 }
