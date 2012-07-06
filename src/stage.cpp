@@ -20,8 +20,9 @@
 
 #include <assert.h>
 #include <iostream>
-#include <sys/stat.h>
+#include <sstream>
 #include <string.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 
 #include "stage.h"
@@ -30,6 +31,32 @@
 using namespace cryptar;
 using namespace std;
 
+
+
+/*
+  Factory method to build stage objects from stage types.
+*/
+Stage *make_stage(enum StageType in_stage_type, const string &in_base_dir)
+{
+        switch(in_stage_type) {
+        case stage_invalid:
+        case base_stage:
+                {
+                        // Why do I see an error if this block is not separately scoped?
+                        ostringstream error_message("Unexpected (but known) staging type, ");
+                        error_message << in_stage_type;
+                        throw(runtime_error(error_message.str()));
+                }
+                break;                
+        case stage_out_fs:
+                return new StageOutFS(in_base_dir);
+        case stage_in_fs:
+                return new StageInFS(in_base_dir);
+        }
+        ostringstream error_message;
+        error_message << "Unknown staging type, " << in_stage_type;
+        throw(runtime_error(error_message.str()));
+}
 
 
 /*

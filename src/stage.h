@@ -24,6 +24,8 @@
 
 
 #include "block.h"
+#include "config.h"
+
 
 namespace cryptar {
 
@@ -40,12 +42,13 @@ namespace cryptar {
           Either (but not both of) staging or transport may be a
           no-op.
         */
-        
+
         class Stage {
         public:
                 Stage() {};
                 virtual ~Stage() {};
 
+                virtual StageType stage_type() { return base_stage; }
                 /*
                   Write a block such that the transport routines can
                   copy it to the remote store.  If transport doesn't
@@ -69,10 +72,14 @@ namespace cryptar {
         };
 
 
+        Stage *make_stage(enum StageType in_stage_type);
+
         class StageOutFS : public Stage {
         public:
                 StageOutFS(const std::string &in_base_dir);
                 virtual ~StageOutFS() {};
+
+                virtual StageType stage_type() { return stage_out_fs; }
                 virtual void operator()(Block *in_bp) const;
                 
         private:
@@ -85,6 +92,7 @@ namespace cryptar {
                 StageInFS(const std::string &in_base_dir);
                 virtual ~StageInFS() {};
 
+                virtual StageType stage_type() { return stage_in_fs; }
                 virtual void operator()(Block *in_bp) const;
                 
         private:

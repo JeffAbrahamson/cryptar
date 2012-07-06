@@ -43,7 +43,7 @@ namespace cryptar {
           no-op.
         */
 
-        
+
         /*
           The base transport class does nothing (i.e., no transport).
           This corresponds to using cryptar on a local store, as a
@@ -55,6 +55,8 @@ namespace cryptar {
         public:
                 Transport(const Config &in_config);
                 virtual ~Transport() {};
+
+                virtual TransportType transport_type() { return base_transport; }
 
                 // An action to take before transporting anything.
                 virtual void pre() const {};
@@ -74,6 +76,8 @@ namespace cryptar {
                         : Transport(config) {};
                 virtual ~TransportRsyncPush() {};
 
+                virtual TransportType transport_type() { return rsync_push; }
+
                 // An action to take before transporting anything.
                 virtual void pre() const {};
                 // An action to transport a block
@@ -88,6 +92,8 @@ namespace cryptar {
                 TransportRsyncPull(const Config &config)
                         : Transport(config) {};
                 virtual ~TransportRsyncPull() {};
+
+                virtual TransportType transport_type() { return rsync_pull; }
 
                 // An action to take before transporting anything.
                 virtual void pre() const {};

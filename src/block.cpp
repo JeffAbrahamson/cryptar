@@ -56,7 +56,7 @@ using namespace std;
 
 Block::Block(const CreateEmpty, const string &in_crypto_key)
         : m_crypto_key(in_crypto_key),
-          m_status(BlockStatus::Ready | BlockStatus::Dirty)
+          m_status(BlockStatus::ready | BlockStatus::dirty)
 {
         m_id = pseudo_random_string();
 }
@@ -64,7 +64,7 @@ Block::Block(const CreateEmpty, const string &in_crypto_key)
 
 Block::Block(const CreateEmpty, const string &in_crypto_key, string &in_persist_dir)
         : m_crypto_key(in_crypto_key),
-          m_status(BlockStatus::Ready | BlockStatus::Dirty),
+          m_status(BlockStatus::ready | BlockStatus::dirty),
           m_persist_dir(in_persist_dir)
 {
         m_id = pseudo_random_string();
@@ -76,7 +76,7 @@ Block::Block(const CreateEmpty, const string &in_crypto_key, string &in_persist_
   Fetch based on block id
 */
 Block::Block(const CreateById, const string &in_crypto_key, const BlockId &in_id)
-        : m_crypto_key(in_crypto_key), m_id(in_id), m_status(BlockStatus::Invalid)
+        : m_crypto_key(in_crypto_key), m_id(in_id), m_status(BlockStatus::block_status_invalid)
 {
         // Here trigger fetch from remote
 }
@@ -91,7 +91,7 @@ Block::Block(const CreateById,
              string &in_persist_dir)
         : m_crypto_key(in_crypto_key),
           m_id(in_id),
-          m_status(BlockStatus::Invalid),
+          m_status(BlockStatus::block_status_invalid),
           m_persist_dir(in_persist_dir)
 {
         // Here trigger fetch from remote

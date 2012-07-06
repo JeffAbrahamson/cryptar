@@ -28,6 +28,25 @@
 
 namespace cryptar {
 
+        /* Types for config objects (config.h) */
+        // Do not renumber members of this enum.  Values are persisted in config.
+        enum StageType {
+                stage_invalid = 0,
+                base_stage,
+                stage_out_fs,
+                stage_in_fs,
+        };
+
+        /* Types for config objects (config.h) */
+        // Do not renumber members of this enum.  Values are persisted in config.
+        enum TransportType {
+                transport_invalid = 0,
+                base_transport,
+                rsync_push,
+                rsync_pull,
+        };
+        
+
         /*
           What to back up.
           Where to put it.
@@ -62,6 +81,7 @@ namespace cryptar {
                 std::string pull_from_remote() const;
 
         private:
+                //// Begin persisted data ////////////////////////////////
                 std::string m_local_dir;
                 std::string m_remote_dir;
                 std::string m_remote_host;
@@ -73,6 +93,10 @@ namespace cryptar {
                    the root object in the remote store.
                 */
                 std::string m_crypto_key;
+                enum StageType m_stage_type;
+                enum TransportType m_transport_type;
+                
+                //// End persisted data //////////////////////////////////
         };
 
 }

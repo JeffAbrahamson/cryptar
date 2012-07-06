@@ -48,6 +48,8 @@ TESTS = 			\
 	compress_test		\
 	crypt_test 		\
 	mode_test 		\
+	stage_test		\
+	transport_test		\
 
 # For a more verbose test, try e.g.
 #    $ CRYPTAR_TEST_LOG_LEVEL=test_suite make test

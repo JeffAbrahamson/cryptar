@@ -80,11 +80,11 @@ namespace cryptar {
                 // is.
         public:
                 enum BlockStatus {
-                        Invalid = 0x0,   // Block is being fetched, no data is valid
-                        Ready = 0x1,     // Data is fetched, block may be used
-                        Dirty = 0x2,     // Data has been modified but not yet synced
-                                         // back to the remote store.
-                        NotFound = 0x4,  // Block was not found in remote store
+                        block_status_invalid = 0x0,   // Block is being fetched, no data is valid
+                        ready = 0x1,                  // Data is fetched, block may be used
+                        dirty = 0x2,                  // Data has been modified but not yet synced
+                                                      // back to the remote store.
+                        not_found = 0x4,              // Block was not found in remote store
                 };
 
                 struct CreateEmpty {};
@@ -320,15 +320,15 @@ namespace cryptar {
 
         enum FileType {
                 // Do not renumber members of this enum.  Values are persisted.
-                Invalid = 0,
-                Regular = 1,
-                Directory = 2,
-                SymLink = 3,    /* Not yet supported */
-                Socket = 4,     /* Not yet supported */
-                Door = 5,       /* Solaris, not supported */
-                BlockSpecial = 6, /* Not supported */
-                CharacterSpecial = 7, /* Not supported */
-                Pipe = 8,             /* Not yet supported */
+                file_type_invalid = 0,
+                regular = 1,
+                directory = 2,
+                symlink = 3,           /* Not yet supported */
+                socket = 4,            /* Not yet supported */
+                door = 5,              /* Solaris, not supported */
+                block_special = 6,     /* Not supported */
+                character_special = 7, /* Not supported */
+                pipe = 8,              /* Not yet supported */
         };
 
         // Is there really a difference between File and Directory TimelineBlock's ?
