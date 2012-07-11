@@ -72,7 +72,8 @@ namespace cryptar {
         };
 
 
-        Stage *make_stage(enum StageType in_stage_type);
+        Stage *make_stage(enum StageType in_stage_type, const std::string &in_base_dir);
+
 
         class StageOutFS : public Stage {
         public:

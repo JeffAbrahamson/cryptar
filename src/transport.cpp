@@ -18,12 +18,35 @@
 */
 
 
+#include <sstream>
 
 #include "transport.h"
 
 
 using namespace cryptar;
 using namespace std;
+
+
+
+/*
+  Factory method to build transport objects from transport types.
+*/
+Transport *make_transport(enum TransportType in_transport_type, const Config &in_config)
+{
+        switch(in_transport_type) {
+        case transport_invalid:
+        case base_transport:
+                return new Transport(in_config);
+                break;                
+        case rsync_push:
+                return new TransportRsyncPush(in_config);
+        case rsync_pull:
+                return new TransportRsyncPull(in_config);
+        }
+        ostringstream error_message;
+        error_message << "Unknown staging type, " << in_transport_type;
+        throw(runtime_error(error_message.str()));
+}
 
 
 Transport::Transport(const Config &in_config)

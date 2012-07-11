@@ -43,7 +43,7 @@ namespace cryptar {
           no-op.
         */
 
-
+        
         /*
           The base transport class does nothing (i.e., no transport).
           This corresponds to using cryptar on a local store, as a
@@ -68,6 +68,9 @@ namespace cryptar {
         protected:
                 Config m_config;
         };
+
+
+        Transport *make_transport(TransportType in_transport_type, const Config &config);
 
 
         class TransportRsyncPush : public Transport {
