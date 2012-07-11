@@ -40,16 +40,25 @@ namespace {
                 {
                         Stage s;
                         BOOST_CHECK(base_stage == s.stage_type());
+                        Stage *ms = make_stage(base_stage, ".");
+                        BOOST_CHECK(base_stage == ms->stage_type());
+                        //////// and check dynamic type as well
                 }
                 
                 {
                         StageOutFS s(".");
                         BOOST_CHECK(stage_out_fs == s.stage_type());
+                        Stage *ms = make_stage(stage_out_fs, ".");
+                        BOOST_CHECK(stage_out_fs == ms->stage_type());
+                        //////// and check dynamic type as well
                 }
 
                 {
                         StageInFS s(".");
                         BOOST_CHECK(stage_in_fs == s.stage_type());
+                        Stage *ms = make_stage(stage_out_fs, ".");
+                        BOOST_CHECK(stage_out_fs == ms->stage_type());
+                        //////// and check dynamic type as well
                 }
         }
         

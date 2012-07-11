@@ -31,7 +31,7 @@ using namespace std;
 /*
   Factory method to build transport objects from transport types.
 */
-Transport *make_transport(enum TransportType in_transport_type, const Config &in_config)
+Transport *cryptar::make_transport(TransportType in_transport_type, const Config &in_config)
 {
         switch(in_transport_type) {
         case transport_invalid:
