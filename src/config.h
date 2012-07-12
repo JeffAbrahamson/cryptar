@@ -23,6 +23,9 @@
 #define __CONFIG_H__ 1
 
 
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/serialization/string.hpp>
 #include <string>
 
 
@@ -54,20 +57,19 @@ namespace cryptar {
         */
         class Config {
         public:
-                /*
-                  How will this work?  Probably in real life, we'll
-                  either create a new instance and populate from user
-                  input or else create it from a name, which means
-                  reading an (encrypted) file and populating the
-                  fields that way.
-
-                  How to represent and then compute the transfer and
-                  staging info?
-                */
                 Config();    /* for making new configs */
-                Config(const std::string &config_name); /* load by name */
+                Config(const std::string &in_config_name, const std::string &in_password); /* load by name */
 
-                void Save(const std::string in_name) const;
+                void save(const std::string in_name, const std::string in_password)
+                {
+                        if(m_config_name.empty())
+                                // If we have no name, have a name
+                                // If we have a name, keep it (enable Save as...)
+                                m_config_name = in_name;
+                        if(m_password.empty())
+                                m_password = in_password;
+                        save_sub(in_name, in_password);
+                }
 
                 //// Begin accessors /////////////////////////////////////
                 const std::string &local_dir() const { return m_local_dir; };
@@ -110,6 +112,13 @@ namespace cryptar {
                 enum TransportType m_transport_type;
                 
                 //// End persisted data //////////////////////////////////
+
+                std::string m_config_name;
+                std::string m_password; /* FIXME: don't leave this as clear text in case of core dump */
+                void save_sub(const std::string &in_name, const std::string &in_password) const;
+                friend class boost::serialization::access;
+                template<class Archive>
+                        void serialize(Archive &ar, const unsigned int version);
         };
 
 }

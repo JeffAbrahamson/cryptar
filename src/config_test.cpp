@@ -38,8 +38,39 @@ namespace {
 
         void test_persist()
         {
+                cout << "  [persist]" << endl;
+                mode(Verbose, true);
+                mode(Testing, true);
+                mode(Threads, false);
+
+                const string local_dir(filename_from_random_bits());
+                const string remote_dir(filename_from_random_bits());
+                const string remote_host(pseudo_random_string());
+                const string crypto_key(pseudo_random_string());
+                const StageType stage_type = stage_out_fs;
+                const TransportType transport_type = rsync_push;
+
+                const string filename("/tmp/cryptar-config-test-" + filename_from_random_bits());
+                const string password(pseudo_random_string());
+
                 Config c;
-                
+                c.local_dir(local_dir);
+                c.remote_dir(remote_dir);
+                c.remote_host(remote_host);
+                c.crypto_key(crypto_key);
+                c.stage_type(stage_type);
+                c.transport_type(transport_type);
+                c.save(filename, password);
+
+                Config c2(filename, password);
+                BOOST_CHECK(c2.local_dir() == local_dir);
+                BOOST_CHECK(c2.remote_dir() == remote_dir);
+                BOOST_CHECK(c2.remote_host() == remote_host);
+                BOOST_CHECK(c2.crypto_key() == crypto_key);
+                BOOST_CHECK(c2.stage_type() == stage_type);
+                BOOST_CHECK(c2.transport_type() == transport_type);
+
+                // FIXME: cleanup filename
         }
         
 }
@@ -48,7 +79,6 @@ namespace {
 
 BOOST_AUTO_TEST_CASE(types)
 {
-        cout << "  [persist]" << endl;
         test_persist();
 }
 

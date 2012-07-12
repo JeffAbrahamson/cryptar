@@ -18,9 +18,18 @@
 */
 
 
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/serialization/string.hpp>
+#include <fstream>
+#include <sstream>
 #include <string>
 
+#include "compress.h"
 #include "config.h"
+#include "crypt.h"
+#include "mode.h"
+
 
 using namespace cryptar;
 using namespace std;
@@ -35,12 +44,80 @@ Config::Config()
 
 
 /*
-  For making new configs from a stored config, probably in an
-  encrypted file somewhere.
+  For making new configs from a stored config.  The stored config
+  lives in an encrypted file on the local filesystem.  Config does not
+  enforce policy over where that config file lives: in_config_name
+  should be an absolute path unless the client knows it wants to do
+  otherwise.
+
+  Note that in_password is not the user's passphrase, but the hashed
+  key we derive from it.  The config, in turn, stores the crypto key
+  for accessing remote content.
+
+  Changing password is easy if the user wants to change his
+  passphrase: we merely need to reread and repersist the config.  But
+  if the concern is that the config has been compromised, then we'd
+  need to read and repersist everything in the remote store.  (This
+  comment should probably move to the change password function once
+  it's written, as well as being reproduced in some form in the docs.
+  To draw attention to which, I invoke FIXME.)
 */
-Config::Config(const string &config_name)
+Config::Config(const string &in_config_name, const std::string &in_password)
 {
+        if(mode(Verbose))
+                cout << "Loading Config(" << in_config_name << ")" << endl;
+        ifstream fs(in_config_name, ios_base::binary);
+        // FIXME.  I've now repeated this same pattern here and in block::read().  Abstract to a function.
+        fs.seekg(0, ios::end);
+        int length = fs.tellg();
+        fs.seekg(0, ios::beg);
+        char *buffer = new char[length];
+        fs.read(buffer, length);
+        string cipher_text = string(buffer, length);
+        fs.close();
+        
+        string plain_text = decrypt(cipher_text, in_password);
+        string big_text = decompress(plain_text);
+        istringstream big_text_stream(big_text);
+        boost::archive::text_iarchive ia(big_text_stream);
+        ia & *this;
 }
+
+
+void Config::save_sub(const string &in_config_name, const string &in_password) const
+{
+        ostringstream big_text_stream;
+        boost::archive::text_oarchive oa(big_text_stream);
+        oa & *this;
+        string big_text(big_text_stream.str());
+        string plain_text = compress(big_text);
+        string cipher_text = encrypt(plain_text, in_password);
+
+        // FIXME: Abstract this from block::write and so define only once
+        ofstream fs(in_config_name, ios_base::binary | ios_base::trunc);
+        fs.write(cipher_text.data(), cipher_text.size());
+        
+        if(mode(Verbose))
+                cout << "Config saved." << endl;
+}
+
+
+
+/*
+  Serialize or deserialize according to context.
+*/
+template<class Archive>
+void Config::serialize(Archive &in_ar, const unsigned int in_version)
+{
+        //////////////// FIXME: use in_version
+        in_ar & m_local_dir;
+        in_ar & m_remote_dir;
+        in_ar & m_remote_host;
+        in_ar & m_crypto_key;
+        in_ar & m_stage_type;
+        in_ar & m_transport_type;
+}
+
 
 
 string Config::staging_dir() const
