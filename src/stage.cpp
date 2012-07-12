@@ -73,7 +73,7 @@ StageOutFS::StageOutFS(const string &in_base_dir)
                 cerr << "  Error creating directory \""
                      << m_base_dir << "\": " << strerror(errno) << endl;
                 throw(runtime_error("Failed to create staging directory."));
-                // ################ should try harder (mkdir -p)
+                // FIXME:  should try harder (mkdir -p)
         }
 }
 
@@ -97,7 +97,7 @@ StageInFS::StageInFS(const string &in_base_dir)
                 cerr << "  Error creating directory \""
                      << m_base_dir << "\": " << strerror(errno) << endl;
                 throw(runtime_error("Failed to create staging directory."));
-                // ################ should try harder (mkdir -p)
+                // FIXME:  should try harder (mkdir -p)
         }
 }
 

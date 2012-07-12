@@ -69,7 +69,7 @@ vector<FS_Node &> FS_Dir::get_entries() const;
   Initialize the local image of the remote file system.
   We cache all directory nodes, but not leaf (file) contents.
 
-  Perhaps this should be called RemoteFileSystem?  ################
+  Perhaps this should be called RemoteFileSystem?  FIXME
 */
 FileSystem::FileSystem(const Config &in_config)
         : m_config(in_config)
@@ -79,7 +79,7 @@ FileSystem::FileSystem(const Config &in_config)
         while(m_num_pending > 0) {
                 while(queue.empty())
                         ;       // could nanosleep?  Or mutex on queue?  Or atomic?
-                // ################ where does queue come from?
+                // FIXME where does queue come from?
                 // Do we derive from Communicator?
                 // How does comm thread know how to find our queue?  An ACT?
                 Block *bp = queue.front();

@@ -42,19 +42,19 @@ namespace {
                 BOOST_CHECK(base_transport == t1.transport_type());
                 Transport *mt1 = make_transport(base_transport, c);
                 BOOST_CHECK(base_transport == mt1->transport_type());
-                //////// and check dynamic type as well
+                //////// and check dynamic type as well  FIXME
 
                 TransportRsyncPush t2(c);
                 BOOST_CHECK(rsync_push == t2.transport_type());
                 Transport *mt2 = make_transport(rsync_push, c);
                 BOOST_CHECK(rsync_push == mt2->transport_type());
-                //////// and check dynamic type as well
+                //////// and check dynamic type as well   FIXME
 
                 TransportRsyncPull t3(c);
                 BOOST_CHECK(rsync_pull == t3.transport_type());
                 Transport *mt3 = make_transport(rsync_pull, c);
                 BOOST_CHECK(rsync_pull == mt3->transport_type());
-                //////// and check dynamic type as well
+                //////// and check dynamic type as well   FIXME
         }
         
 }

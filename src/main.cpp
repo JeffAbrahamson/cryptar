@@ -180,7 +180,7 @@ int main(int argc, char *argv[])
                 return 0;
         }
 
-        // Config needs to be populated correctly ################
+        // Config needs to be populated correctly   == FIXME ==
         // I assuredly need to decide who owns these configs, and whether I really
         // need them all.  Probably I could shift to a reference counted pointer.
         Communicator send(new Stage, new TransportRsyncPush(Config()), new Config);

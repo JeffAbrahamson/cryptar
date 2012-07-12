@@ -128,14 +128,14 @@ string Config::staging_dir() const
 
 string Config::push_to_remote() const
 {
-        //////////////// implement this
+        //////////////// implement this  FIXME
         return string();
 }
 
 
 string Config::pull_from_remote() const
 {
-        //////////////// implement this
+        //////////////// implement this  FIXME
         return string();
 }
 

@@ -91,7 +91,7 @@ bool Communicator::queue_empty()
 Block *Communicator::pop()
 {
         boost::lock_guard<boost::mutex> lock(m_queue_access);
-        cerr << "Protect against empty pop() here." << endl; // ################
+        cerr << "Protect against empty pop() here." << endl; // FIXME
         Block *bp = m_queue.front();
         m_queue.pop();
         return bp;
