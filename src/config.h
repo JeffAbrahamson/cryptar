@@ -65,8 +65,11 @@ namespace cryptar {
                   staging info?
                 */
                 Config();    /* for making new configs */
-                Config(const std::string &config_name);
+                Config(const std::string &config_name); /* load by name */
 
+                void Save(const std::string in_name) const;
+
+                //// Begin accessors /////////////////////////////////////
                 const std::string &local_dir() const { return m_local_dir; };
                 void local_dir(const std::string &in) { m_local_dir = in; };
 
@@ -76,6 +79,16 @@ namespace cryptar {
                 const std::string &remote_host() const { return m_remote_host; };
                 void remote_host(const std::string &in) { m_remote_host = in; };
 
+                const std::string &crypto_key() const { return m_crypto_key; };
+                void crypto_key(const std::string &in) { m_crypto_key = in; };
+
+                const StageType &stage_type() const { return m_stage_type; };
+                void stage_type(const StageType &in) { m_stage_type = in; };
+
+                const TransportType &transport_type() const { return m_transport_type; };
+                void transport_type(const TransportType &in) { m_transport_type = in; };
+                //// End accessors ///////////////////////////////////////
+                
                 std::string staging_dir() const;
                 std::string push_to_remote() const;
                 std::string pull_from_remote() const;

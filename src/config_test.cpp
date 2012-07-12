@@ -18,48 +18,37 @@
 */
 
 
+
+
+#define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_MODULE tests
+#include <algorithm>
+#include <boost/test/unit_test.hpp>
+#include <pstreams/pstream.h>
 #include <string>
 
-#include "config.h"
+#include "cryptar.h"
+#include "test_text.h"
+
 
 using namespace cryptar;
 using namespace std;
 
+namespace {
 
-/*
-  For making new configs from scratch.
-*/
-Config::Config()
-{
+        void test_persist()
+        {
+                Config c;
+                
+        }
+        
 }
 
 
-/*
-  For making new configs from a stored config, probably in an
-  encrypted file somewhere.
-*/
-Config::Config(const string &config_name)
+
+BOOST_AUTO_TEST_CASE(types)
 {
+        cout << "  [persist]" << endl;
+        test_persist();
 }
-
-
-string Config::staging_dir() const
-{
-        return string("/tmp/cryptar-") + getenv("HOME");
-}
-
-
-string Config::push_to_remote() const
-{
-        //////////////// implement this
-        return string();
-}
-
-
-string Config::pull_from_remote() const
-{
-        //////////////// implement this
-        return string();
-}
-
 

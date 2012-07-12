@@ -42,11 +42,12 @@ cryptar : main.o $(HEADER) $(OBJECT) Makefile
 	$(GCC) -o cryptar main.o $(OBJECT) $(LIBS)
 
 TESTS = 			\
-	header_test		\
 	block_test		\
-	communicate_test	\
 	compress_test		\
+	communicate_test	\
+	config_test		\
 	crypt_test 		\
+	header_test		\
 	mode_test 		\
 	stage_test		\
 	transport_test		\
