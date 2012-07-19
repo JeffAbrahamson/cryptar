@@ -35,6 +35,12 @@ Transport *cryptar::make_transport(TransportType in_transport_type, const Config
 {
         switch(in_transport_type) {
         case transport_invalid:
+                {
+                        // Why do I see an error if this block is not separately scoped?
+                        ostringstream error_message("Unexpected transport type, ");
+                        error_message << in_transport_type;
+                        throw(runtime_error(error_message.str()));
+                }
         case base_transport:
                 return new Transport(in_config);
                 break;                
