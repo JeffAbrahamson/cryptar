@@ -40,6 +40,12 @@ Stage *cryptar::make_stage(StageType in_stage_type, const string &in_base_dir)
 {
         switch(in_stage_type) {
         case stage_invalid:
+                {
+                        // Why do I see an error if this block is not separately scoped?
+                        ostringstream error_message("Unexpected (but known) staging type, ");
+                        error_message << in_stage_type;
+                        throw(runtime_error(error_message.str()));
+                }
         case base_stage:
                 /*
                 {
