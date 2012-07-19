@@ -72,13 +72,56 @@ namespace {
 
                 // FIXME: cleanup filename
         }
+
+
+        /*
+          Create a test config file.
+        */
+        Config make_config()
+        {
+                Config c;
+                c.local_dir("invalid"); // db interface doesn't care about local directory
+                c.remote_dir(filename_from_random_bits());
+                c.remote_host(pseudo_random_string());
+                c.crypto_key(pseudo_random_string());
+                c.stage_type(stage_out_fs);
+                c.transport_type(rsync_push);
+                const string filename("/tmp/cryptar-config-test-" + filename_from_random_bits());
+                const string password(pseudo_random_string());
+                c.save(filename, password);
+                // FIXME: cleanup filename at end
+                return c;
+        }
+
+        
+        /*
+          Store data using the db interface, then recover the data.
+        */
+        void test_end_to_end(bool threaded)
+        {
+                cout << "  [db_end_to_end (" << (threaded ? "threaded" : "single-threaded") << ")]" << endl;
+                mode(Verbose, true);
+                mode(Testing, true);
+                mode(Threads, threaded);
+
+                Config config(make_config());
+                
+
+                
+        }
         
 }
 
 
-
-BOOST_AUTO_TEST_CASE(types)
+BOOST_AUTO_TEST_CASE(persist)
 {
         test_persist();
+}
+
+
+BOOST_AUTO_TEST_CASE(db_end_to_end)
+{
+        test_end_to_end(false);
+        test_end_to_end(true);
 }
 
