@@ -60,7 +60,7 @@ namespace cryptar {
                 Config();    /* for making new configs */
                 Config(const std::string &in_config_name, const std::string &in_password); /* load by name */
 
-                void save(const std::string in_name, const std::string in_password)
+                void save(const std::string &in_name, const std::string &in_password)
                 {
                         if(m_config_name.empty())
                                 // If we have no name, have a name
