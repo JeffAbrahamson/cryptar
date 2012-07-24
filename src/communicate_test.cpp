@@ -60,7 +60,7 @@ namespace {
                 mode(Verbose, true);
                 mode(Testing, true);
                 mode(Threads, thread);
-                Communicator c(new NoStage(), new Transport(Config()), new Config());
+                Communicator c(new NoStage(), new Transport(Config()));
                 string pass = ""; // doesn't matter here
 
                 // Start with 1 so that we can verify that ACT's have

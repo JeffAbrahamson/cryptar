@@ -56,7 +56,6 @@ Transport *cryptar::make_transport(TransportType in_transport_type, const Config
 
 
 Transport::Transport(const Config &in_config)
-        : m_config(in_config)
 {
 }
 

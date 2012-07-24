@@ -40,16 +40,15 @@ namespace {
   that makes sense.  Provide auto-tuning function so others can tune
   to their environments.
 
-  This owns the pointers.  Don't use the same Stage or Config for
-  other purposes.
+  This owns the pointers.  Don't use the same Stage or Transport for
+  other purposes.   FIXME: why?
 */
 Communicator::Communicator(const Stage *in_stage,
-                           const Transport *in_transport,
-                           const Config *in_config)
+                           const Transport *in_transport)
         : m_batch_size(mode(Testing) ? communicator_test_batch_size : communicator_prod_batch_size),
           m_stage(in_stage),
           m_transport(in_transport),
-          m_config(in_config), m_needed(true)
+          m_needed(true)
 {
         //m_batch_size = mode(Testing) ? communicator_test_batch_size : communicator_prod_batch_size;
         if(mode(Threads))
@@ -60,7 +59,7 @@ Communicator::Communicator(const Stage *in_stage,
 Communicator::~Communicator()
 {
         delete m_stage;
-        delete m_config;
+        delete m_transport;
 }
 
 

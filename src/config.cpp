@@ -25,6 +25,7 @@
 #include <sstream>
 #include <string>
 
+#include "communicate.h"
 #include "compress.h"
 #include "config.h"
 #include "crypt.h"
@@ -123,6 +124,32 @@ void Config::serialize(Archive &in_ar, const unsigned int in_version)
 string Config::staging_dir() const
 {
         return string("/tmp/cryptar-") + getenv("HOME");
+}
+
+
+/*
+  Provide a pointer to the receive queue (the object that requests
+  data from the remote store).
+*/
+shared_ptr<Communicator> Config::receiver()
+{
+        if(m_receiver)
+                return m_receiver;
+        m_receiver = shared_ptr<Communicator>(new Communicator(make_stage(m_stage_type, m_local_dir), make_transport(m_transport_type, *this)));
+        return m_receiver;
+}
+
+
+/*
+  Provide a pointer to the send queue (the object that pushes data to
+  the remote store).
+*/
+shared_ptr<Communicator> Config::sender()
+{
+        if(m_sender)
+                return m_sender;
+        m_sender = shared_ptr<Communicator>(new Communicator(make_stage(m_stage_type, m_local_dir), make_transport(m_transport_type, *this)));
+        return m_sender;
 }
 
 

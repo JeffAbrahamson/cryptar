@@ -112,7 +112,7 @@ namespace {
                 //mode(Verbose, true);
                 mode(Testing, true);
                 mode(Threads, thread);
-                Communicator c(new NoStage(), new Transport(Config()), new Config());
+                Communicator c(new NoStage(), new Transport(Config()));
 
                 // Start with 1 so that we can verify that ACT's have
                 // been initialized.
@@ -165,8 +165,7 @@ namespace {
                 const int loop_num = 10;
                 {
                         Communicator c_send(new StageOutFS(staging_dir),
-                                            new Transport(Config()),
-                                            new Config());
+                                            new Transport(Config()));
                         // Start with 1 so that we can verify that ACT's have
                         // been initialized.
                         for(int i = 1; i <= loop_num; i++) {
@@ -193,8 +192,7 @@ namespace {
                 // Now fetch those same blocks from the staging area.
                 num_completions = 0;
                 Communicator c_recv(new StageInFS(staging_dir),
-                                    new Transport(Config()),
-                                    new Config());
+                                    new Transport(Config()));
                 for(auto it = blocks.begin(); it != blocks.end(); ++it) {
                         DataBlock *bp = block_by_id<DataBlock>(it->m_pass, it->m_id);
                         bp->completion_action(new ACT_Check(bp, it->m_content));

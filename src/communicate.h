@@ -27,7 +27,6 @@
 #include <queue>
 
 #include "block.h"
-#include "config.h"
 #include "stage.h"
 #include "transport.h"
 
@@ -40,8 +39,7 @@ namespace cryptar {
         class Communicator {
         public:
                 Communicator(const Stage *in_stage,
-                             const Transport *in_transport,
-                             const Config *in_config);
+                             const Transport *in_transport);
                 ~Communicator();
 
                 void push(Block *);
@@ -65,7 +63,6 @@ namespace cryptar {
                 */
                 const Stage *m_stage;
                 const Transport *m_transport;
-                const Config *m_config;
 
                 bool m_needed;    /* set to false to encourage auto-shutdown */
                 boost::mutex m_queue_access;

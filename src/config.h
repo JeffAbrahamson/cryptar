@@ -26,11 +26,15 @@
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/serialization/string.hpp>
+#include <memory>
 #include <string>
 
 
 namespace cryptar {
 
+        class Communicator;     /* avoid include loop */
+
+        
         /* Types for config objects (config.h) */
         // Do not renumber members of this enum.  Values are persisted in config.
         enum StageType {
@@ -59,7 +63,7 @@ namespace cryptar {
         public:
                 Config();    /* for making new configs */
                 Config(const std::string &in_config_name, const std::string &in_password); /* load by name */
-
+                
                 void save(const std::string &in_name, const std::string &in_password)
                 {
                         if(m_config_name.empty())
@@ -90,7 +94,11 @@ namespace cryptar {
                 const TransportType &transport_type() const { return m_transport_type; };
                 void transport_type(const TransportType &in) { m_transport_type = in; };
                 //// End accessors ///////////////////////////////////////
+
+                std::shared_ptr<Communicator> receiver();
+                std::shared_ptr<Communicator> sender();
                 
+                // FIXME  (are these three needed?)
                 std::string staging_dir() const;
                 std::string push_to_remote() const;
                 std::string pull_from_remote() const;
@@ -116,6 +124,8 @@ namespace cryptar {
                 std::string m_config_name;
                 std::string m_password; /* FIXME: don't leave this as clear text in case of core dump */
                 void save_sub(const std::string &in_name, const std::string &in_password) const;
+                std::shared_ptr<Communicator> m_receiver;
+                std::shared_ptr<Communicator> m_sender;
                 friend class boost::serialization::access;
                 template<class Archive>
                         void serialize(Archive &ar, const unsigned int version);
