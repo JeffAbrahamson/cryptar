@@ -112,7 +112,10 @@ namespace {
                 //mode(Verbose, true);
                 mode(Testing, true);
                 mode(Threads, thread);
-                Communicator c(new NoStage(), new Transport(Config()));
+                Config config;
+                config.stage_type(no_stage);
+                config.transport_type(no_transport);
+                shared_ptr<Communicator> c = config.sender();
 
                 // Start with 1 so that we can verify that ACT's have
                 // been initialized.
@@ -122,16 +125,16 @@ namespace {
                         string content = pseudo_random_string(100);
                         DataBlock *bp = block_by_content<DataBlock>(pass, content);
                         bp->completion_action(new ACT_Check(bp, content));
-                        c.push(bp);
+                        c->push(bp);
                 }
 
                 // process the communication queue, once if thread == false,
                 // completely otherwise.
                 if(thread) {
-                        c.wait();
+                        c->wait();
                         BOOST_CHECK_EQUAL(num_completions, loop_num);
                 } else {
-                        c();
+                        (*c)();
                         const int expected_num = min(loop_num, communicator_test_batch_size);
                         BOOST_CHECK_EQUAL(num_completions, expected_num);
                 }
@@ -161,11 +164,16 @@ namespace {
                         string m_pass;
                         string m_content; // plain-text
                 };
+
                 vector<BlockNote> blocks;
                 const int loop_num = 10;
                 {
-                        Communicator c_send(new StageOutFS(staging_dir),
-                                            new Transport(Config()));
+                        Config config;
+                        config.local_dir(staging_dir);
+                        config.stage_type(stage_out_fs);
+                        config.transport_type(no_transport);
+                        shared_ptr<Communicator> c_send = config.sender();
+
                         // Start with 1 so that we can verify that ACT's have
                         // been initialized.
                         for(int i = 1; i <= loop_num; i++) {
@@ -173,17 +181,17 @@ namespace {
                                 string content = pseudo_random_string(100);
                                 DataBlock *bp = block_by_content<DataBlock>(pass, content);
                                 bp->completion_action(new ACT_Check(bp, content));
-                                c_send.push(bp);
+                                c_send->push(bp);
                                 blocks.push_back(BlockNote(bp->id(), pass, content));
                         }
 
                         // process the communication queue, once if thread == false,
                         // completely otherwise.
                         if(thread) {
-                                c_send.wait();
+                                c_send->wait();
                                 BOOST_CHECK_EQUAL(num_completions, loop_num);
                         } else {
-                                c_send();
+                                (*c_send)();
                                 const int expected_num = min(loop_num, communicator_test_batch_size);
                                 BOOST_CHECK_EQUAL(num_completions, expected_num);
                         }
@@ -191,20 +199,24 @@ namespace {
 
                 // Now fetch those same blocks from the staging area.
                 num_completions = 0;
-                Communicator c_recv(new StageInFS(staging_dir),
-                                    new Transport(Config()));
+                Config config;
+                config.local_dir(staging_dir);
+                config.stage_type(stage_in_fs);
+                config.transport_type(no_transport);
+                shared_ptr<Communicator> c_recv = config.receiver();
+
                 for(auto it = blocks.begin(); it != blocks.end(); ++it) {
                         DataBlock *bp = block_by_id<DataBlock>(it->m_pass, it->m_id);
                         bp->completion_action(new ACT_Check(bp, it->m_content));
-                        c_recv.push(bp);
+                        c_recv->push(bp);
                 }
                 // process the communication queue, once if thread == false,
                 // completely otherwise.
                 if(thread) {
-                        c_recv.wait();
+                        c_recv->wait();
                         BOOST_CHECK_EQUAL(num_completions, loop_num);
                 } else {
-                        c_recv();
+                        (*c_recv)();
                         const int expected_num = min(loop_num, communicator_test_batch_size);
                         BOOST_CHECK_EQUAL(num_completions, expected_num);
                 }

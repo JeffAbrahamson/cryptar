@@ -43,7 +43,8 @@ Transport *cryptar::make_transport(TransportType in_transport_type, const Config
                 }
         case base_transport:
                 return new Transport(in_config);
-                break;                
+        case no_transport:
+                return new NoTransport(in_config);
         case rsync_push:
                 return new TransportRsyncPush(in_config);
         case rsync_pull:

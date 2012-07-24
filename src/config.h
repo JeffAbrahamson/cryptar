@@ -40,6 +40,7 @@ namespace cryptar {
         enum StageType {
                 stage_invalid = 0,
                 base_stage,
+                no_stage,
                 stage_out_fs,
                 stage_in_fs,
         };
@@ -49,6 +50,7 @@ namespace cryptar {
         enum TransportType {
                 transport_invalid = 0,
                 base_transport,
+                no_transport,
                 rsync_push,
                 rsync_pull,
         };

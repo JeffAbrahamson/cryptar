@@ -69,33 +69,6 @@ namespace cryptar {
                 }
         };
 
-
-        /*
-          Staging class that does nothing on operator().
-        */
-        class NoStage : public Stage {
-        public:
-                NoStage() {
-                        /*
-                        if(mode(Verbose))
-                                std::cout << "NoStage()" << std::endl;
-                        */
-                };
-                virtual ~NoStage() {
-                        /*
-                        if(mode(Verbose))
-                                std::cout << "~NoStage()" << std::endl;
-                        */
-                };
-
-                virtual void operator()(Block *bp) const
-                {
-                        /*
-                        if(mode(Verbose))
-                                std::cout << "NoStage::operator()" << std::endl;
-                        */
-                };
-        };
         
 }
 

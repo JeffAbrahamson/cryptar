@@ -75,6 +75,20 @@ namespace cryptar {
         Stage *make_stage(enum StageType in_stage_type, const std::string &in_base_dir);
 
 
+        /*
+          Staging class that does nothing on operator().
+          Not very different from the base class, but signals
+          that we mean to do nothing rather than a bug that sliced
+          us to the base class.
+        */
+        class NoStage : public Stage {
+        public:
+                NoStage() {};
+                virtual ~NoStage() {};
+                virtual void operator()(Block *bp) const {};
+        };
+
+        
         class StageOutFS : public Stage {
         public:
                 StageOutFS(const std::string &in_base_dir);

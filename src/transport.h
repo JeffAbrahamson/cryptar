@@ -73,6 +73,25 @@ namespace cryptar {
         Transport *make_transport(TransportType in_transport_type, const Config &config);
 
 
+        /*
+          Transport class that does nothing.
+          Not very different from the base class, but signals
+          that we mean to do nothing rather than a bug that sliced
+          us to the base class.
+        */
+        class NoTransport : public Transport {
+        public:
+                NoTransport(const Config &in_config)
+                        : Transport(in_config) {};
+
+                virtual TransportType transport_type() { return base_transport; }
+
+                virtual void pre() const {};
+                virtual void operator()(Block *bp) const {};
+                virtual void post() const {};
+        };
+
+
         class TransportRsyncPush : public Transport {
         public:
                 TransportRsyncPush(const Config &config)

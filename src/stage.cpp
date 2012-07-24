@@ -57,7 +57,8 @@ Stage *cryptar::make_stage(StageType in_stage_type, const string &in_base_dir)
                 */
                 // Remove preceding comment or make Stage() constructor protected.  Probably the former.
                 return new Stage();
-                break;                
+        case no_stage:
+                return new NoStage();
         case stage_out_fs:
                 return new StageOutFS(in_base_dir);
         case stage_in_fs:

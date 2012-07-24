@@ -64,6 +64,7 @@ Config::Config()
   To draw attention to which, I invoke FIXME.)
 */
 Config::Config(const string &in_config_name, const std::string &in_password)
+        : m_stage_type(stage_invalid), m_transport_type(transport_invalid)
 {
         if(mode(Verbose))
                 cout << "Loading Config(" << in_config_name << ")" << endl;
