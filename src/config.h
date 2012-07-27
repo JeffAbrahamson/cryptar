@@ -38,8 +38,8 @@ namespace cryptar {
         /* Types for config objects (config.h) */
         // Do not renumber members of this enum.  Values are persisted in config.
         enum StageType {
-                stage_invalid = 0,
-                base_stage,
+                stage_invalid = 0, /* represents an error in type request */
+                base_stage,        /* can't be constructed, so an error, but here to be complete */
                 no_stage,
                 stage_out_fs,
                 stage_in_fs,
@@ -48,8 +48,8 @@ namespace cryptar {
         /* Types for config objects (config.h) */
         // Do not renumber members of this enum.  Values are persisted in config.
         enum TransportType {
-                transport_invalid = 0,
-                base_transport,
+                transport_invalid = 0, /* represents an error in type request */
+                base_transport,        /* can't be constructed, so an error, but here to be complete */
                 no_transport,
                 rsync_push,
                 rsync_pull,

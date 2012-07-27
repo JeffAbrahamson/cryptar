@@ -47,16 +47,13 @@ Stage *cryptar::make_stage(StageType in_stage_type, const string &in_base_dir)
                         throw(runtime_error(error_message.str()));
                 }
         case base_stage:
-                /*
                 {
                         // Why do I see an error if this block is not separately scoped?
-                        ostringstream error_message("Unexpected (but known) staging type, ");
+                        ostringstream error_message("Unexpected staging type, ");
                         error_message << in_stage_type;
+                        error_message << " (Attempt to instantiate base class.)";
                         throw(runtime_error(error_message.str()));
                 }
-                */
-                // Remove preceding comment or make Stage() constructor protected.  Probably the former.
-                return new Stage();
         case no_stage:
                 return new NoStage();
         case stage_out_fs:

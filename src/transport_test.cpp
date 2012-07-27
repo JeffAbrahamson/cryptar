@@ -38,10 +38,10 @@ namespace {
         void test_types()
         {
                 Config c;
-                Transport t1(c);
-                BOOST_CHECK(base_transport == t1.transport_type());
-                Transport *mt1 = make_transport(base_transport, c);
-                BOOST_CHECK(base_transport == mt1->transport_type());
+                NoTransport t1(c);
+                BOOST_CHECK(no_transport == t1.transport_type());
+                Transport *mt1 = make_transport(no_transport, c);
+                BOOST_CHECK(no_transport == mt1->transport_type());
                 //////// and check dynamic type as well  FIXME
 
                 TransportRsyncPush t2(c);

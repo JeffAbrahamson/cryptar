@@ -52,8 +52,9 @@ namespace cryptar {
           interest.
         */
         class Transport {
-        public:
+        protected:
                 Transport(const Config &in_config);
+        public:
                 virtual ~Transport() {};
 
                 virtual TransportType transport_type() { return base_transport; }
@@ -84,7 +85,7 @@ namespace cryptar {
                 NoTransport(const Config &in_config)
                         : Transport(in_config) {};
 
-                virtual TransportType transport_type() { return base_transport; }
+                virtual TransportType transport_type() { return no_transport; }
 
                 virtual void pre() const {};
                 virtual void operator()(Block *bp) const {};

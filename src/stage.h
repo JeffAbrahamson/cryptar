@@ -44,8 +44,9 @@ namespace cryptar {
         */
 
         class Stage {
-        public:
+        protected:
                 Stage() {};
+        public:
                 virtual ~Stage() {};
 
                 virtual StageType stage_type() { return base_stage; }
@@ -85,6 +86,7 @@ namespace cryptar {
         public:
                 NoStage() {};
                 virtual ~NoStage() {};
+                virtual StageType stage_type() { return no_stage; }
                 virtual void operator()(Block *bp) const {};
         };
 

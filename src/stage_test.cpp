@@ -38,10 +38,10 @@ namespace {
         void test_types()
         {
                 {
-                        Stage s;
-                        BOOST_CHECK(base_stage == s.stage_type());
-                        Stage *ms = make_stage(base_stage, ".");
-                        BOOST_CHECK(base_stage == ms->stage_type());
+                        NoStage s;
+                        BOOST_CHECK(no_stage == s.stage_type());
+                        Stage *ms = make_stage(no_stage, ".");
+                        BOOST_CHECK(no_stage == ms->stage_type());
                         //////// and check dynamic type as well   FIXME
                 }
                 

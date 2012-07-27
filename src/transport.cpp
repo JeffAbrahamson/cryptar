@@ -42,7 +42,13 @@ Transport *cryptar::make_transport(TransportType in_transport_type, const Config
                         throw(runtime_error(error_message.str()));
                 }
         case base_transport:
-                return new Transport(in_config);
+                {
+                        // Why do I see an error if this block is not separately scoped?
+                        ostringstream error_message("Unexpected transport type, ");
+                        error_message << in_transport_type;
+                        error_message << " (Attempt to instantiate base class.)";
+                        throw(runtime_error(error_message.str()));
+                }
         case no_transport:
                 return new NoTransport(in_config);
         case rsync_push:
