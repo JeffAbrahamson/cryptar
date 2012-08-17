@@ -45,13 +45,16 @@ namespace cryptar {
         /*
           The base class, a noop ACT.
           The action is invoked by operator().
+
+          That is, on completion of the task, the task completer
+          should call have an ACT_Base reference A and call A()
+          to signal completion.
         */
         class ACT_Base {
         public:
                 ACT_Base() {};
                 virtual ~ACT_Base() {};
 
-                //virtual void operator()() = 0;
                 virtual void operator()() { throw std::logic_error("operator() in ACT_Base"); }
         };
 
