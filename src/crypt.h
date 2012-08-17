@@ -38,7 +38,10 @@ namespace cryptar {
         // Return a filename based on some optional random bits.
         // Random bits produced if none provided.
         std::string filename_from_random_bits(const std::string in_random = "");
-        
+
+        // Return a unique string
+        std::string unique_string();
+
         // Crypto++ is documented at http://www.cryptopp.com/
         // and http://www.cryptopp.com/fom-serve/cache/1.html
         // and http://www.cryptopp.com/wiki/FAQ

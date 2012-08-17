@@ -136,6 +136,18 @@ namespace {
                         BOOST_CHECK(filename.find("/") == string::npos);
                 }
         }
+
+
+        void test_unique()
+        {
+                cout << "  [begin unique string test]" << endl;
+                unsigned int N = 10000;
+                set<string> s;
+                for(unsigned int i = 0; i < N; ++i)
+                        s.insert(unique_string());
+                
+                BOOST_CHECK(s.size() == N);
+        }
 }
 
 
@@ -165,6 +177,12 @@ BOOST_AUTO_TEST_CASE(lengths)
 BOOST_AUTO_TEST_CASE(filenames)
 {
         test_filenames();
+}
+
+
+BOOST_AUTO_TEST_CASE(unique)
+{
+        test_unique();
 }
 
 

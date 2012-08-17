@@ -25,6 +25,9 @@
 #include <errno.h>
 #include <sstream>
 #include <stdexcept>
+#include <sys/types.h>
+#include <unistd.h>
+
 
 // Modified from http://www.cryptopp.com/wiki/Hash_Functions
 //
@@ -209,6 +212,30 @@ string cryptar::filename_from_random_bits(string in_random)
         return digest;
 }
 
+
+/*
+  Return a unique string.
+
+  Construct from MAC id, process id, and time.
+  Just in case, appen some random bits at the end.
+
+  If the hardware address isn't available, use random bits to fill.
+*/
+string cryptar::unique_string()
+{
+        string hardware_address(""); // FIXME
+        
+        pid_t pid = getpid();
+        string pid_string(reinterpret_cast<char *>(&pid), sizeof(pid)); // Confirm string constructor from int
+        
+        //timeval tv;                                               // FIXME: How do I set this?
+        time_t tv = time(0);
+        string time_string(reinterpret_cast<char *>(&tv), sizeof(tv)); // FIXME: Confirm constructor
+
+        // FIXME:  This function doesn't work properly yet!
+        string unique(hardware_address + pid_string + time_string + pseudo_random_string(10));
+        return unique;
+}
 
 
 /*
