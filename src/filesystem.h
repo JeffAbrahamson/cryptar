@@ -96,7 +96,7 @@ namespace cryptar {
 
         private:
                 //unsigned int process_remote_tree_node(EmptyBlock *bp);
-                unsigned int process_remote_tree_node(InitBlock *bp);
+                //unsigned int process_remote_tree_node(InitBlock *bp);
                 unsigned int process_remote_tree_node(TimelineBlock *bp);
                 unsigned int process_remote_tree_node(FileHeadBlock *bp);
                 unsigned int process_remote_tree_node(DirectoryHeadBlock *bp);
