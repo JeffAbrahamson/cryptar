@@ -38,6 +38,24 @@ using namespace std;
 namespace {
 
         /*
+          Check that BlockId's behave as we expect.
+
+          (That is, like strings, comparable as such, but generating
+          their own unique id's.)
+        */
+        void check_block_id()
+        {
+                cout << "check_block_id()" << endl;
+                BlockId b1, b2;
+                BOOST_CHECK(b1 != b2);
+                BOOST_CHECK(!(b1 == b2));
+                BlockId b3(b1);
+                BOOST_CHECK(b1 == b3);
+                BOOST_CHECK(!(b1 != b3));
+        }
+
+        
+        /*
           Verify that a data block can encrypt and decrypt again.
         */
         void check_data_block()
@@ -223,6 +241,11 @@ namespace {
         }
 }
 
+
+BOOST_AUTO_TEST_CASE(block_id)
+{
+        check_block_id();
+}
 
 BOOST_AUTO_TEST_CASE(case_data_block)
 {

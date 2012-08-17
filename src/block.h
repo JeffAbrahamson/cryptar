@@ -23,6 +23,9 @@
 #define __BLOCK_H__ 1
 
 
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/serialization/string.hpp>
 #include <map>
 #include <set>
 #include <stdexcept>
@@ -30,6 +33,7 @@
 #include <queue>
 #include <vector>
 
+#include "crypt.h"
 
 
 namespace cryptar {
@@ -64,7 +68,38 @@ namespace cryptar {
           (collections of pieces), or timelines (sequences of images).
         */
 
-        typedef std::string BlockId;
+        class BlockId {
+        public:
+                BlockId() { m_id = unique_string(); }
+                BlockId(const std::string in_id)
+                        : m_id(in_id) {};
+                ~BlockId() {};
+
+                bool operator==(const BlockId &in_id) const
+                {
+                        return this->m_id == in_id.id();
+                }
+                bool operator!=(const BlockId &in_id) const
+                {
+                        return !operator==(in_id);
+                }
+
+                // Don't permit accidental conversion to string.
+                const std::string &as_string() const { return m_id; };
+                const bool empty() const { return m_id.empty(); };
+
+        private:
+                const std::string &id() const { return m_id; };
+
+                std::string m_id;
+                
+                friend class boost::serialization::access;
+                template<class Archive>
+                        void serialize(Archive &in_ar, const unsigned int in_version) {
+                        //in_ar & in_version; /* FIXME:  correct version usage? */
+                        in_ar & m_id;
+                }
+        };
 
         
         /*
@@ -204,24 +239,6 @@ namespace cryptar {
         private:
         };
         
-
-        /*
-          Not yet fully defined.  Represents an initial pointer into
-          the remote filesystem.
-        */
-        class InitBlock : public Block {
-        public:
-                // CreateByContent may not make sense except empty?
-                InitBlock(const CreateByContent,
-                          const std::string &in_crypto_key,
-                          const std::string &in_data);
-                InitBlock(const CreateById,
-                          const std::string &in_crypto_key,
-                          const BlockId &in_id);
-                virtual ~InitBlock() {};
-
-                BlockId root_id(const std::string &in_name, const bool in_create = false);
-        };
 
 
         /*

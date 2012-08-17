@@ -51,6 +51,15 @@ using namespace std;
   To update a DataBlock, instantiate by id, then call SetContent().
 */
 
+
+
+/******************************************************************************/
+/* BlockId */
+
+
+// Defined inline in block.h
+
+
 /******************************************************************************/
 /* Block */
 
@@ -212,7 +221,7 @@ void Block::read(const string &in_dir, bool flat)
 string Block::id_to_pathname(const string &in_dir, bool flat) const
 {
         boost::filesystem::path filename;
-        string filename_for_id = filename_from_random_bits(m_id);
+        string filename_for_id = filename_from_random_bits(m_id.as_string());
         if(flat)
                 filename = boost::filesystem::path(in_dir + "-" + filename_for_id);
         else
@@ -246,7 +255,7 @@ DataBlock::DataBlock(const CreateByContent,
 */
 DataBlock::DataBlock(const CreateById,
                      const string &in_crypto_key,
-                     const string &in_id)
+                     const BlockId &in_id)
         : Block(CreateById(), in_crypto_key, in_id)
 {
 }
@@ -273,7 +282,6 @@ void DataBlock::set_content(const string &in_contents)
         string augmented_content = pseudo_random_string(11) + in_contents;
         m_cipher_text = encrypt(compress(augmented_content), m_crypto_key);
 }
-
 
 
 /******************************************************************************/
@@ -305,8 +313,8 @@ CoverBlock::CoverBlock(const CreateByContent,
   Create new based on ID
 */
 CoverBlock::CoverBlock(const CreateById,
-                     const string &in_crypto_key,
-                     const string &in_id)
+                       const string &in_crypto_key,
+                       const BlockId &in_id)
         : DataBlock(CreateById(), in_crypto_key, in_id), m_base(0), m_base_length(0)
 {
         // To create by id, we fetch the block with an ACT that
