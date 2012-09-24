@@ -8,7 +8,9 @@ SRC = 				\
 	compress.cpp		\
 	config.cpp		\
 	crypt.cpp		\
+	db.cpp			\
 	mode.cpp		\
+	root.cpp		\
 	stage.cpp		\
 	transport.cpp		\
 
@@ -47,8 +49,10 @@ TESTS = 			\
 	communicate_test	\
 	config_test		\
 	crypt_test 		\
+	db_test			\
 	header_test		\
 	mode_test 		\
+	root_test		\
 	stage_test		\
 	transport_test		\
 

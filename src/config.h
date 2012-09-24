@@ -29,6 +29,8 @@
 #include <memory>
 #include <string>
 
+#include "block.h"
+
 
 namespace cryptar {
 
@@ -65,17 +67,8 @@ namespace cryptar {
         public:
                 Config();    /* for making new configs */
                 Config(const std::string &in_config_name, const std::string &in_password); /* load by name */
-                
-                void save(const std::string &in_name, const std::string &in_password)
-                {
-                        if(m_config_name.empty())
-                                // If we have no name, have a name
-                                // If we have a name, keep it (enable Save as...)
-                                m_config_name = in_name;
-                        if(m_password.empty())
-                                m_password = in_password;
-                        save_sub(in_name, in_password);
-                }
+
+                void save(const std::string in_name = std::string(), const std::string in_password = std::string());
 
                 //// Begin accessors /////////////////////////////////////
                 const std::string &local_dir() const { return m_local_dir; };
@@ -95,8 +88,19 @@ namespace cryptar {
 
                 const TransportType &transport_type() const { return m_transport_type; };
                 void transport_type(const TransportType &in) { m_transport_type = in; };
+
+                std::string password();
+
+            //private:
+                //friend Root
+                const BlockId root_id() const { return m_root_id; };
+                void root_id(const BlockId &in_id) { m_root_id = in_id; save(); }
+                std::string root_block_password();
+        public:
                 //// End accessors ///////////////////////////////////////
 
+                // FIXME   (do I really need both of these here?)
+                // FIXME   (perhaps just one comm thread for sending, the other is private)
                 std::shared_ptr<Communicator> receiver();
                 std::shared_ptr<Communicator> sender();
                 
@@ -120,14 +124,20 @@ namespace cryptar {
                 std::string m_crypto_key;
                 enum StageType m_stage_type;
                 enum TransportType m_transport_type;
+
+                // How to find the first block, which points to
+                // whatever filesystems and db's there are in the
+                // remote store.
+                BlockId m_root_id;
+                std::string m_root_password;
                 
                 //// End persisted data //////////////////////////////////
 
                 std::string m_config_name;
                 std::string m_password; /* FIXME: don't leave this as clear text in case of core dump */
-                void save_sub(const std::string &in_name, const std::string &in_password) const;
                 std::shared_ptr<Communicator> m_receiver;
                 std::shared_ptr<Communicator> m_sender;
+                
                 friend class boost::serialization::access;
                 template<class Archive>
                         void serialize(Archive &ar, const unsigned int version);

@@ -77,7 +77,6 @@ namespace cryptar {
                 friend class boost::serialization::access;
                 template<class Archive>
                         void serialize(Archive &in_ar, const unsigned int in_version) {
-                        //in_ar & in_version; /* FIXME:  correct version usage? */
                         in_ar & m_id;
                 }
         };
@@ -168,10 +167,10 @@ namespace cryptar {
                 const BlockId &id() const { return m_id; }
                 
         protected:
-                std::string m_cipher_text;
-                const std::string m_crypto_key;
-                BlockId m_id;
-                BlockStatus m_status;
+                std::string m_cipher_text; /* encrypted contents of this block */
+                const std::string m_crypto_key; /* cryptographic key for this block */
+                BlockId m_id;                   /* identifier (in filesystem) for this block */
+                BlockStatus m_status;           /* status of this block */
 
         private:
                 /*
@@ -201,6 +200,7 @@ namespace cryptar {
         /*
           Block ID's and contents are both strings, so use factory
           functions to hide some notation.
+          FIXME  (This is no longer true.  But probably still want factory functions.)
         */
         template<typename T> T *block_empty(const std::string &in_crypto)
                 {
@@ -336,13 +336,15 @@ namespace cryptar {
 
         class DirectoryHeadBlock : public /*Head*/Block {
         public:
+                DirectoryHeadBlock(const CreateEmpty,
+                                   const std::string &in_crypto_key);
                 DirectoryHeadBlock(const CreateByContent,
                                    const std::string &in_crypto_key,
-                                   const std::string &filename);
+                                   const std::string &in_filename);
                 DirectoryHeadBlock(const CreateById,
                                    const std::string &in_crypto_key,
                                    const BlockId &in_id);
-                virtual ~DirectoryHeadBlock();
+                virtual ~DirectoryHeadBlock() {};
                 
         };
 

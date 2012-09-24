@@ -126,9 +126,9 @@ Block::~Block()
 /*
   Add an asynchronous completion token (ACT).
 
-  This is thread-safe, as only one thread at a time has control over a
-  given block.  So that thread may execute ACT's from that block and
-  may modify the ACT queue.
+  This is thread-safe, in the sense that only one thread at a time has
+  control over a given block.  So that thread may execute ACT's from
+  that block and may modify the ACT queue.
 
   If an ACT modifies another block, it must handle thread saftey for
   that action.
@@ -150,7 +150,8 @@ void Block::completion_action()
         while(!m_act_queue.empty()) {
                 ACT_Base *act = m_act_queue.front();
                 (*act)();
-                delete act;
+                // FIXME:  (ACT's should  delete this  in operator() ?)
+                //delete act;
                 m_act_queue.pop();
         }
 }
@@ -437,3 +438,34 @@ TimelineBlock::HeadBlockPointer::HeadBlockPointer(BlockId in_id, string &in_pass
           m_crypto_key(in_password)
 {
 }
+
+
+/******************************************************************************/
+/* DirectoryHeadBlock */
+
+DirectoryHeadBlock::DirectoryHeadBlock(const CreateEmpty,
+                                       const string &in_crypto_key)
+        : Block::Block(CreateEmpty(), in_crypto_key)
+{
+        // FIXME: should this be empty?
+}
+
+
+DirectoryHeadBlock::DirectoryHeadBlock(const CreateByContent,
+                                       const string &in_crypto_key,
+                                       const string &in_filename)
+        : Block::Block(CreateEmpty(), in_crypto_key)
+{
+        // FIXME: should this be empty?
+}
+
+
+DirectoryHeadBlock::DirectoryHeadBlock(const CreateById,
+                                       const string &in_crypto_key,
+                                       const BlockId &in_id)
+        : Block::Block(CreateEmpty(), in_crypto_key)
+{
+        // FIXME: should this be empty?
+}
+
+

@@ -106,8 +106,7 @@ namespace {
 
                 Config config(make_config());
                 
-
-                
+                // FIXME:  Why is this test here?  Should it be here?  Finish it somewhere, but probably in db_test.cpp.
         }
         
 }

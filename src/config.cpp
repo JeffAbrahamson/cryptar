@@ -86,12 +86,23 @@ Config::Config(const string &in_config_name, const std::string &in_password)
 }
 
 
-void Config::save_sub(const string &in_config_name, const string &in_password) const
+void Config::save(const string in_config_name, const string in_password)
 {
+        // Provide both arguments or neither
+        assert((in_config_name.empty() && in_password.empty())
+               || (!in_config_name.empty() && !in_password.empty()));
+        if(!in_config_name.empty() && !in_password.empty()) {
+                m_config_name = in_config_name;
+                m_password = in_password;
+        }
+
+        assert(!m_password.empty());
+        assert(!m_config_name.empty());
+        
         ostringstream big_text_stream;
         boost::archive::text_oarchive oa(big_text_stream);
         oa & *this;
-        string big_text(big_text_stream.str());
+        string big_text(big_text_stream.str()); // FIXME:  (Is this correct?  What about oa?)
         string plain_text = compress(big_text);
         string cipher_text = encrypt(plain_text, in_password);
 
@@ -101,6 +112,34 @@ void Config::save_sub(const string &in_config_name, const string &in_password) c
         
         if(mode(Verbose))
                 cout << "Config saved." << endl;
+}
+
+
+/*
+  Return the password with which the config block is encrypted.
+
+  FIXME:
+  We need this in order to re-save the config.
+  We probably shouldn't need this, and the way to get rid of it is
+  immediately to create a root block on creating an empty config.
+*/
+string Config::password()
+{
+        // And we shouldn't store this in the clear anyway
+        return m_password;
+}
+
+
+/*
+  The crypto key for the root block.
+  
+  Every block stores the cryptographic keys for its children.
+*/
+string Config::root_block_password()
+{
+        // FIXME  (Don't store in the clear, at least mask with an xor.)
+        // FIXME  (Or maybe better than that.  Or maybe not at all.)
+        return m_root_password;
 }
 
 
@@ -118,6 +157,7 @@ void Config::serialize(Archive &in_ar, const unsigned int in_version)
         in_ar & m_crypto_key;
         in_ar & m_stage_type;
         in_ar & m_transport_type;
+        in_ar & m_root_id;
 }
 
 
