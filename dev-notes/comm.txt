@@ -1,0 +1,42 @@
+I should abandon the rsync methods.  It's not clear how to discover errors.
+Instead, I should eventually move to a TLS or SSL channel with custom server.
+In the mean time, I can probably use a pipe to ssh to tiny python program.
+And also sshfs and cp as a first draft, since I only need implement TransportCp.
+
+Then I can remove Stage and its descendants completely.
+
+
+stream = out_stream | in_stream
+
+out_stream = (command payload | command | NULL) out_stream
+command = char blockid
+payload = line of binhex (for simple client) or length-prefixed binary (for more complex client)
+char = [srlx]
+  s = save payload with id block_id (followed by payload)
+      (return is ack with block_id on in_stream)
+  r = retrieve payload with id block_id
+      (return is ack with block_id and payload on in_stream)
+  l = list set of all block_id's, request has synthetic block_id
+      (return is ack with synthetic block_id, payload of all block_id's)
+  x = remove block_id
+      (return is ack with block_id)
+
+in_stream = (ack block_id | ack block_id payload | status message | NULL) in_stream
+ack = [tf]
+  't' = success, 'f' = failure
+status = [qde]
+  'q' = remote shutting down
+  'd' = remote disk full
+  'e' = remote unspecified error
+message = text terminated by '\0'
+
+
+Push data:
+  send(bp)
+  s block_id payload, store in map<BlockId, Block *>
+  when ack received, fetch Block *, remote from map, and call ACT's
+
+Pull data:
+  r block_id
+  store in map<BlockId, Block *>
+  when ack received, fetch Block *, remote from map, inject payload into Block, and call ACT's

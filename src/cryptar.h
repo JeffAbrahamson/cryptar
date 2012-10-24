@@ -33,7 +33,6 @@
 #include "mode.h"
 #include "block.h"
 #include "config.h"
-#include "stage.h"
 #include "transport.h"
 #include "communicate.h"
 #include "filesystem.h"

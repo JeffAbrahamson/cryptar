@@ -1,0 +1,19 @@
+Fix all regtests to work with new Config's !!
+
+Root can fetch and persist root.
+Deleting ACT's in completion_action() may be a race condition on futures.
+Config's should generally be shared_ptr<Config>.
+Fix unique_string()
+
+Back to end-to-end db test.
+Will want synchronous get and put functions using promises and futures.
+
+Use unique_string() where once I used pseudo_random_string().  Mostly.
+Use filename_from_random_bits() to make into filenames (and so id's).  Maybe in BlockId constructor.
+BlockId shouldn't be assignable from string.
+
+Use outer_block& (and maybe shared_ptr<Block>) instead of Block*  (pimpl).
+
+Remove Stage.  Implement TransportFS.  Later TransportNetwork (simple block server).
+
+Scan FIXME's

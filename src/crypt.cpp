@@ -173,6 +173,29 @@ string cryptar::message_digest(const string &message, bool filesystem_safe)
 
 
 /*
+  Hash a passphrase to a crypto key.
+  
+  Most crypto keys are generated from randomness.
+  We can't hope for the user to do the same.
+*/
+string cryptar::phrase_to_key(const string &in_phrase)
+{
+        string message;
+        string digest(in_phrase);
+        for(unsigned int i = 0; i < 50; i++) {
+                message = digest; // one extra copy on first iteration
+                CryptoPP::SHA256 hash;
+                CryptoPP::StringSource(message, true,
+                                       new CryptoPP::HashFilter(hash,
+                                                                new CryptoPP::StringSink(digest)));
+                
+        }
+        return digest;
+}
+
+
+
+/*
   Return a string of length pseudo-random characters.
   Not necessarily human readable.
 */

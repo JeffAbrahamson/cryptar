@@ -19,7 +19,11 @@
 
 
 #include <sstream>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
+#include "config.h"
 #include "transport.h"
 
 
@@ -31,7 +35,7 @@ using namespace std;
 /*
   Factory method to build transport objects from transport types.
 */
-Transport *cryptar::make_transport(TransportType in_transport_type, const Config &in_config)
+Transport *cryptar::make_transport(TransportType in_transport_type, const shared_ptr<Config> in_config)
 {
         switch(in_transport_type) {
         case transport_invalid:
@@ -51,10 +55,12 @@ Transport *cryptar::make_transport(TransportType in_transport_type, const Config
                 }
         case no_transport:
                 return new NoTransport(in_config);
-        case rsync_push:
-                return new TransportRsyncPush(in_config);
-        case rsync_pull:
-                return new TransportRsyncPull(in_config);
+        case fs:
+                throw(runtime_error("Transport type 'fs' is not valid here."));
+        case fs_out:
+                return new TransportFSOut(in_config);
+        case fs_in:
+                return new TransportFSIn(in_config);
         }
         ostringstream error_message;
         error_message << "Unknown staging type, " << in_transport_type;
@@ -62,13 +68,51 @@ Transport *cryptar::make_transport(TransportType in_transport_type, const Config
 }
 
 
-Transport::Transport(const Config &in_config)
-{
-}
+// FIXME  FSIn and FSOut are similar, refactor together
 
 
 /*
-TransportRsyncPush::TransportRsyncPush(const Config &in_config)
-{
-}
+  Directory where we should stage files.
 */
+TransportFSOut::TransportFSOut(const shared_ptr<Config> in_config)
+        : Transport(in_config), m_local_dir(in_config->local_dir())
+{
+        if(mkdir(m_local_dir.c_str(), 0700) && EEXIST != errno) {
+                cerr << "  Error creating directory \""
+                     << m_local_dir << "\": " << strerror(errno) << endl;
+                throw(runtime_error("Failed to create staging directory."));
+                // FIXME:  should try harder (mkdir -p)
+        }
+}
+
+
+
+void TransportFSOut::operator()(Block *bp) const
+{
+        assert(bp);
+        bp->write(m_local_dir);
+}
+
+
+
+/*
+  Directory where we should stage files.
+*/
+TransportFSIn::TransportFSIn(const shared_ptr<Config> in_config)
+        : Transport(in_config), m_local_dir(in_config->local_dir())
+{
+        if(mkdir(m_local_dir.c_str(), 0700) && EEXIST != errno) {
+                cerr << "  Error creating directory \""
+                     << m_local_dir << "\": " << strerror(errno) << endl;
+                throw(runtime_error("Failed to create staging directory."));
+                // FIXME:  should try harder (mkdir -p)
+        }
+}
+
+
+
+void TransportFSIn::operator()(Block *bp) const
+{
+        assert(bp);
+        bp->read(m_local_dir);
+}

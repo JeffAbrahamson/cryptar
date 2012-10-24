@@ -32,6 +32,9 @@ namespace cryptar {
         std::string message_digest(const std::string &message,
                                    const bool filesystem_safe = false);
 
+        // Compute a crypto key from an arbitrary passphrase
+        std::string phrase_to_key(const std::string &in_phrase);
+        
         // Return a (not necessarily human readable) string of random bits.
         std::string pseudo_random_string(int length = 40);
 

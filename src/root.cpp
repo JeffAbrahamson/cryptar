@@ -90,7 +90,7 @@ Root::Root(shared_ptr<Config> in_config)
         // FIXME:  (Probably even Root should derive from Block and be related to DirectoryBlock.)
 
         // FIXME:  (Config has created a root block password on instantiation?)
-        DirectoryHeadBlock *bp = block_empty<DirectoryHeadBlock>(m_config->root_block_password());
+        DirectoryHeadBlock *bp = block_empty<DirectoryHeadBlock>(m_config->root_block_crypto_key());
         m_config->root_id(bp->id());
         // Persist the empty root synchronously so that if it fails the config doesn't get repersisted
         // with a root id that is invalid.
@@ -145,7 +145,7 @@ void Root::get_from_remote()
 {
         // FIXME  (I need a non-fetching create-by-id.)
         // FIXME  (The existing create-by-id functions are explicitly synchronous?)
-        DataBlock *bp = block_by_id<DataBlock>(m_config->root_block_password(), m_config->root_id());
+        DataBlock *bp = block_by_id<DataBlock>(m_config->root_block_crypto_key(), m_config->root_id());
         ACT_Synchronous act;
         bp->completion_action(&act);
         m_config->sender()->push(bp);
@@ -173,7 +173,7 @@ void Root::push_to_remote(const bool in_asynchronous) const
         // FIXME  (Is this correct?)
 
         // FIXME  (Don't trigger fetch here.)
-        DataBlock *bp = block_by_id<DataBlock>(m_config->root_block_password(), m_config->root_id());
+        DataBlock *bp = block_by_id<DataBlock>(m_config->root_block_crypto_key(), m_config->root_id());
         m_config->sender()->push(bp);
 }
 

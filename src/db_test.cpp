@@ -37,68 +37,6 @@ using namespace std;
 
 namespace {
 
-        /*
-          Check that BlockId's behave as we expect.
-
-          (That is, like strings, comparable as such, but generating
-          their own unique id's.)
-        */
-        void check_block_id()
-        {
-                cout << "check_block_id()" << endl;
-                BlockId b1, b2;
-                BOOST_CHECK(b1 != b2);
-                BOOST_CHECK(!(b1 == b2));
-                BlockId b3(b1);
-                BOOST_CHECK(b1 == b3);
-                BOOST_CHECK(!(b1 != b3));
-        }
-
-        
-        /*
-          Verify that a data block can encrypt and decrypt again.
-        */
-        void check_data_block()
-        {
-                cout << "check_data_block()" << endl;
-                mode(Verbose, true);
-                mode(Testing, true);
-                mode(Threads, false);
-                
-                string pass = pseudo_random_string();
-                string content = pseudo_random_string(100);
-                DataBlock *bp = block_by_content<DataBlock>(pass, content);
-                BOOST_CHECK_EQUAL(content, bp->plain_text());
-        }
-
-
-#if FIX_ME
-        /*
-          Serialisation test.  Just serialise a block to a file and restore it.
-        */
-        void check_serialise()
-        {
-                cout << "check_serialise()" << endl;
-                mode(Verbose, true);
-                mode(Testing, true);
-                mode(Threads, false);
-                
-                string pass = pseudo_random_string();
-                string content = pseudo_random_string(100);
-                DataBlock *bp = block_by_content<DataBlock>(pass, content);
-                const string staging_dir(temp_file_name());
-                TransportOutFS transport(staging_dir); // causes local_dir to be created
-                bp->write(staging_dir);
-                const BlockId id = bp->id();
-                BOOST_CHECK_EQUAL(content, bp->plain_text());
-
-                DataBlock *bp2 = block_by_id<DataBlock>(pass, id);
-                bp2->read(staging_dir);
-                BOOST_CHECK_EQUAL(content, bp2->plain_text());
-        }
-#endif        
-
-                
         int num_completions;
 
 
@@ -119,7 +57,7 @@ namespace {
         };
         
 
-#if FIXME        
+#if FIXME
         /*
           Queue some blocks for transfer.
           Their completion methods just check that encryption is working.
@@ -157,10 +95,8 @@ namespace {
                         BOOST_CHECK_EQUAL(num_completions, expected_num);
                 }
         }
-#endif
-        
 
-#if FIXME
+
         /*
           Queue some blocks for transfer.  Stage them to files and delete the blocks.
           Queue some blocks for transfer, recover from staged.
@@ -188,7 +124,7 @@ namespace {
                 vector<BlockNote> blocks;
                 const int loop_num = 10;
                 {
-                        Config config();
+                        Config config("");
                         config.local_dir(staging_dir);
                         config.transport_type(no_transport);
                         shared_ptr<Communicator> c_send = config.sender();
@@ -218,7 +154,7 @@ namespace {
 
                 // Now fetch those same blocks from the staging area.
                 num_completions = 0;
-                Config config();
+                Config config("");
                 config.local_dir(staging_dir);
                 config.transport_type(no_transport);
                 shared_ptr<Communicator> c_recv = config.receiver();
@@ -242,49 +178,25 @@ namespace {
 #endif
 }
 
-
-BOOST_AUTO_TEST_CASE(block_id)
-{
-        check_block_id();
-}
-
-BOOST_AUTO_TEST_CASE(case_data_block)
-{
-        check_data_block();
-}
-
-#if FIXME
-BOOST_AUTO_TEST_CASE(case_serialisation)
-{
-        check_serialise();
-}
-#endif
-
 #if FIXME
 BOOST_AUTO_TEST_CASE(case_print_completion_one)
 {
         check_completion(false);
 }
-#endif
 
-#if FIXME
 BOOST_AUTO_TEST_CASE(case_print_completion_thread)
 {
         check_completion(true);
 }
-#endif
 
-#if FIXME
 BOOST_AUTO_TEST_CASE(case_print_staging_one)
 {
         check_staging(false);
 }
-#endif
 
-#if FIXME
 BOOST_AUTO_TEST_CASE(case_print_staging_thread)
 {
-        check_staging(trueo);
+        check_staging(true);
 }
 #endif
 

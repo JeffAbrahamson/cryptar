@@ -58,6 +58,31 @@ namespace {
         
 
         /*
+          Confirm that phrase_to_key() does not change behavior.
+        */
+        void test_phrase_to_key(const string &message)
+        {
+                auto crypto_map = crypto_key_map();
+                pair<unsigned int, string> answer = crypto_map[message];
+                string key = phrase_to_key(message);
+                BOOST_CHECK(key.size() == answer.first);
+                string digest = message_digest(key);
+#if 0
+                // For generating comparison data
+                cout << "        crypto_map.insert(pair<string, pair<int, string> >(string(\""
+                     << message
+                     << "\"),\npair<int, string>("
+                     << key.size()
+                     << ",\nstring(\""
+                     << digest
+                     << "\"))));"
+                     << endl;
+#endif
+                BOOST_CHECK(digest == answer.second);
+        }
+
+
+        /*
           Return the number of errors that occur.  Return true if an
           error occurs, false otherwise.
         */
@@ -158,6 +183,13 @@ BOOST_AUTO_TEST_CASE(message_digest)
 {
         cout << "  [test_message_digest]" << endl;
         test(test_message_digest);
+}
+
+
+BOOST_AUTO_TEST_CASE(phrase_to_key)
+{
+        cout << "  [test_phrase_to_key]" << endl;
+        test(test_phrase_to_key);
 }
 
 

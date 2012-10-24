@@ -37,6 +37,7 @@ namespace cryptar {
 
         cryptar::vector_string test_text();
         std::map<std::string, std::string> orderly_text();
+        std::map<std::string, std::pair<unsigned int, std::string> > crypto_key_map();
         std::string temp_file_name();
         
         struct Messages {

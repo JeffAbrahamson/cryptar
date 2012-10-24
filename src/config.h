@@ -34,41 +34,47 @@
 
 namespace cryptar {
 
-        class Communicator;     /* avoid include loop */
-
+        class Communicator;
+        class Config;
         
-        /* Types for config objects (config.h) */
-        // Do not renumber members of this enum.  Values are persisted in config.
-        enum StageType {
-                stage_invalid = 0, /* represents an error in type request */
-                base_stage,        /* can't be constructed, so an error, but here to be complete */
-                no_stage,
-                stage_out_fs,
-                stage_in_fs,
-        };
-
+        
         /* Types for config objects (config.h) */
         // Do not renumber members of this enum.  Values are persisted in config.
         enum TransportType {
                 transport_invalid = 0, /* represents an error in type request */
                 base_transport,        /* can't be constructed, so an error, but here to be complete */
                 no_transport,
-                rsync_push,
-                rsync_pull,
+                fs,             /* for constructing */
+                fs_in,          /* for internal use */
+                fs_out          /* for internal use */
+                /* and eventually server-based methods (cryptard) */
         };
         
 
+        std::shared_ptr<Config> make_config(const std::string &in_passphrase);
+        std::shared_ptr<Config> make_config(const std::string &in_config_name, const std::string &in_passphrase);
+        
         /*
           What to back up.
           Where to put it.
           How to get it there.
+
+          FIXME  Distinguish between a password and a crypto key.  (The former is the user's idea.)
+          FIXME  Who is responsible for transforming passwords (passphrases) into crypto keys?  Surely crypt.cpp.
         */
         class Config {
-        public:
-                Config();    /* for making new configs */
-                Config(const std::string &in_config_name, const std::string &in_password); /* load by name */
+                friend std::shared_ptr<Config> make_config(const std::string &in_passphrase);
+                friend std::shared_ptr<Config> make_config(const std::string &in_config_name, const std::string &in_passphrase);
+                
+        private:
+                /* Make a new config. */
+                Config(const std::string &in_passphrase);
+                /* Load a config by name. */
+                Config(const std::string &in_config_name, const std::string &in_passphrase);
 
-                void save(const std::string in_name = std::string(), const std::string in_password = std::string());
+        public:
+                // Do I store the key or require it here?
+                void save(const std::string in_name = std::string(), const std::string in_passphrase = std::string());
 
                 //// Begin accessors /////////////////////////////////////
                 const std::string &local_dir() const { return m_local_dir; };
@@ -80,22 +86,32 @@ namespace cryptar {
                 const std::string &remote_host() const { return m_remote_host; };
                 void remote_host(const std::string &in) { m_remote_host = in; };
 
-                const std::string &crypto_key() const { return m_crypto_key; };
+                /* The only reason to set the passphrase is if the
+                   user wants to change password.  This may not be the
+                   right interface for this, then.  Probably just want
+                   a "change_passphrase" function that takes old and
+                   new passphrases and returns a bool?
+                 */
+                //const std::string &crypto_key() const { return m_crypto_key; };
                 void crypto_key(const std::string &in) { m_crypto_key = in; };
-
-                const StageType &stage_type() const { return m_stage_type; };
-                void stage_type(const StageType &in) { m_stage_type = in; };
-
+                
                 const TransportType &transport_type() const { return m_transport_type; };
                 void transport_type(const TransportType &in) { m_transport_type = in; };
 
-                std::string password();
-
-            //private:
-                //friend Root
+        private:
+                /* We need to be able to create a root block from the
+                   config so that when we create a config, we can
+                   follow on by creating a root block.  The
+                   entanglement comes from the fact that the config
+                   must know the id and crypto key of the root block.
+                   Letting the client create the root would risk the
+                   config not knowing about the root.
+                */
+                friend class Root;
                 const BlockId root_id() const { return m_root_id; };
                 void root_id(const BlockId &in_id) { m_root_id = in_id; save(); }
-                std::string root_block_password();
+                const std::string &root_block_crypto_key() const;
+                
         public:
                 //// End accessors ///////////////////////////////////////
 
@@ -111,30 +127,35 @@ namespace cryptar {
 
         private:
                 //// Begin persisted data ////////////////////////////////
+                // If we store blocks locally, this is where we store them.
                 std::string m_local_dir;
+                // If we store blocks remotely, this is where they go on the remote host.
+                // This may or may not be at the client's discretion, perhaps we'll insist
+                // on a server.
                 std::string m_remote_dir;
+                // If we store blocks remotely, this is the host to which we should connect.
                 std::string m_remote_host;
 
+                /* Crypto key for saving the config. */
+                /* FIXME: don't leave this as clear text in case of core dump */
+                /* FIXME  do we even need to store this? */
                 /* The user's pass phrase transforms to a crypto key
                    that lets us decrypt the config file (from which we
-                   destreamed a config object).  Here in the config
-                   object we store the crypto key to be able to read
-                   the root object in the remote store.
+                   destreamed a config object).
                 */
                 std::string m_crypto_key;
-                enum StageType m_stage_type;
+                // This is how we will communicate with the remote store.
                 enum TransportType m_transport_type;
 
                 // How to find the first block, which points to
                 // whatever filesystems and db's there are in the
                 // remote store.
                 BlockId m_root_id;
-                std::string m_root_password;
+                std::string m_root_crypto_key;
                 
                 //// End persisted data //////////////////////////////////
 
                 std::string m_config_name;
-                std::string m_password; /* FIXME: don't leave this as clear text in case of core dump */
                 std::shared_ptr<Communicator> m_receiver;
                 std::shared_ptr<Communicator> m_sender;
                 

@@ -23,55 +23,58 @@
 #define __TRANSPORT_H__ 1
 
 
+#include <memory>
+
 #include "block.h"
 #include "config.h"
 
 
 namespace cryptar {
 
-        /*
-          Staging involves persisting (or reading) a block to (or
-          from) a local file.
+        class Transport;
+        Transport *make_transport(TransportType in_transport_type, const std::shared_ptr<Config> in_config);
 
-          Transporting involves moving data to or from a remote host.
-
-          The initial rsync-based mechanism writes files to a local
-          staging directory before rsyncing them to the remote host.
-          Other remote arrangements, such as various cloud providers,
-          might involve different staging or transport mechanisms.
-          Either (but not both of) staging or transport may be a
-          no-op.
-        */
-
-        
         /*
           The base transport class does nothing (i.e., no transport).
-          This corresponds to using cryptar on a local store, as a
-          sort of encrypted svn repository.  More usefully, it helps
-          for testing.  Otherwise, a derived class is of more
-          interest.
+          Nonetheless, for testing we'll trivially derive from the
+          base class so that a programming error that slices to the
+          base class will still be caught.
         */
         class Transport {
         protected:
-                Transport(const Config &in_config);
+                Transport(const std::shared_ptr<Config> in_config) {};
+                friend Transport *cryptar::make_transport(TransportType in_transport_type, const std::shared_ptr<Config> in_config);
+                
         public:
                 virtual ~Transport() {};
 
                 virtual TransportType transport_type() { return base_transport; }
 
-                // An action to take before transporting anything.
+                /*
+                  An action to take before transporting anything.
+                  If we have a network connection to the remote
+                  store, this is where we set up the connection.
+                */
                 virtual void pre() const {};
-                // An action to transport a block
+                
+                /*
+                  An action to transport a block.
+                */
                 virtual void operator()(Block *bp) const {};
-                // An action to take after all blocks are transported.
+                
+                /*
+                  An action to take after all blocks are transported.
+                  If we have a network connection to the remote
+                  store, this is where we tear it down.
+                */
                 virtual void post() const {};
                 
-        protected:
-                Config m_config;
+        //protected:
+                //std::shared_ptr<Config> m_config;
         };
 
 
-        Transport *make_transport(TransportType in_transport_type, const Config &config);
+        Transport *make_transport(TransportType in_transport_type, const std::shared_ptr<Config> config);
 
 
         /*
@@ -81,10 +84,12 @@ namespace cryptar {
           us to the base class.
         */
         class NoTransport : public Transport {
-        public:
-                NoTransport(const Config &in_config)
+        protected:
+                NoTransport(const std::shared_ptr<Config> in_config)
                         : Transport(in_config) {};
+                friend Transport *cryptar::make_transport(TransportType in_transport_type, const std::shared_ptr<Config> in_config);
 
+        public:
                 virtual TransportType transport_type() { return no_transport; }
 
                 virtual void pre() const {};
@@ -93,39 +98,57 @@ namespace cryptar {
         };
 
 
-        class TransportRsyncPush : public Transport {
+        /*
+          Write blocks to the file system.
+          The config will tell us where to write them.
+          The simplest use of TransportFSOut is when the
+          remote store is a remote file system.
+         */
+        class TransportFSOut : public Transport {
+        protected:
+                TransportFSOut(const std::shared_ptr<Config> in_config);
+                friend Transport *cryptar::make_transport(TransportType in_transport_type, const std::shared_ptr<Config> in_config);
+
         public:
-                TransportRsyncPush(const Config &config)
-                        : Transport(config) {};
-                virtual ~TransportRsyncPush() {};
+                virtual ~TransportFSOut() {};
 
-                virtual TransportType transport_type() { return rsync_push; }
+                virtual TransportType transport_type() { return fs_out; }
 
-                // An action to take before transporting anything.
                 virtual void pre() const {};
-                // An action to transport a block
-                virtual void operator()(Block *bp) const {};
-                // An action to take after all blocks are transported.
+                virtual void operator()(Block *bp) const;
                 virtual void post() const {};
+        private:
+                const std::string m_local_dir;
         };
+
+
+        /*
+          Read blocks from the file system.
+          The config will tell us where to find them.
+          The simplest use of TransportFSIn is when the
+          remote store is a remote file system.
+         */
+        class TransportFSIn : public Transport {
+        protected:
+                TransportFSIn(const std::shared_ptr<Config> in_config);
+                friend Transport *cryptar::make_transport(TransportType in_transport_type, const std::shared_ptr<Config> in_config);
+
+        public:
+                virtual ~TransportFSIn() {};
+
+                virtual TransportType transport_type() { return fs_in; }
+
+                virtual void pre() const {};
+                virtual void operator()(Block *bp) const;
+                virtual void post() const {};
+        private:
+                const std::string m_local_dir;
+        };
+
+
+        // FIXME:  We'll also want TransportTLSIn and TransportTLSOut.
+        //         They will require a wire protocol.  Cf. ../dev/comm.txt.
         
-
-        class TransportRsyncPull : public Transport {
-        public:
-                TransportRsyncPull(const Config &config)
-                        : Transport(config) {};
-                virtual ~TransportRsyncPull() {};
-
-                virtual TransportType transport_type() { return rsync_pull; }
-
-                // An action to take before transporting anything.
-                virtual void pre() const {};
-                // An action to transport a block
-                virtual void operator()(Block *bp) const {};
-                // An action to take after all blocks are transported.
-                virtual void post() const {};
-        };
-
 }
 
 

@@ -25,3 +25,80 @@ using namespace cryptar;
 using namespace std;
 
 
+template<typename T>
+DBSet<T>::DBSet(shared_ptr<Config> in_config, string in_dbname)
+{
+        // The config provides us with access to communication
+        // channels (Communicator instances).
+        m_config = in_config;
+        
+        // Find db from root, keep a pointer to the root's head block
+        
+
+        // Set whatever other local state we need, including a ready flag
+        
+}
+
+
+
+template<typename T>
+DBSet<T>::~DBSet()
+{
+        // Unset ready flag
+        
+        // Request communicator shutdown
+        
+}
+
+
+
+/*
+  Return a T given its unique identifier.
+
+  Fetches the block(s) from the remote store, decrypts, and constructs
+  the T.
+
+  FIXME: Support composite objects.  For now, we're only fetching
+  single blocks, but we should also support assembly of more complex
+  objects, including cryptar algorithm support.
+*/
+template<typename T>
+T DBSet<T>::get(const BlockId &in_id)
+{
+        // Tell communicator we want block.  ACT fulfills promise.
+
+        // Wait on promise.
+}
+
+
+/*
+  Insert a new T.
+
+  We don't check if an identical T already exists.
+*/
+template<typename T>
+void DBSet<T>::put(const T &in_T)
+{
+        // Send block
+
+        // Wait on promise
+
+        // Probably just want to assign an id, then call put with id.
+}
+
+
+/*
+  Update an existing T.
+
+  If the block ID doesn't exist, it will be created, but that's a bit
+  dangerous.  FIXME:  Check to make sure block id's are valid.
+*/
+template<typename T>
+void DBSet<T>::put(const BlockId &in_id, const T &in_T)
+{
+        // Send block
+
+        // Wait on promise
+        
+}
+

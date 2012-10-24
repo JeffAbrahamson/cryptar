@@ -18,6 +18,7 @@
 */
 
 
+#include <assert.h>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/serialization/string.hpp>
@@ -37,9 +38,30 @@ using namespace std;
 
 
 /*
+  Cf. comments at Config::Config below.
+*/
+shared_ptr<Config> cryptar::make_config(const string &in_passphrase)
+{
+        // FIXME  Needs a transport type.
+        return make_config("", in_passphrase);
+}
+
+
+shared_ptr<Config> cryptar::make_config(const string &in_config_name, const string &in_passphrase)
+{
+        shared_ptr<Config> config = shared_ptr<Config>(new Config(in_config_name, in_passphrase));
+        // FIXME  Fix this actually to look up transport type.  For now we only have one.
+        config->m_sender = shared_ptr<Communicator>(new Communicator(make_transport(fs_out, shared_ptr<Config>(config))));
+        config->m_receiver = shared_ptr<Communicator>(new Communicator(make_transport(fs_in, shared_ptr<Config>(config))));
+        return config;
+}
+
+
+
+/*
   For making new configs from scratch.
 */
-Config::Config()
+Config::Config(const string &in_passphrase)
 {
 }
 
@@ -64,7 +86,7 @@ Config::Config()
   To draw attention to which, I invoke FIXME.)
 */
 Config::Config(const string &in_config_name, const std::string &in_password)
-        : m_stage_type(stage_invalid), m_transport_type(transport_invalid)
+        : m_transport_type(transport_invalid)
 {
         if(mode(Verbose))
                 cout << "Loading Config(" << in_config_name << ")" << endl;
@@ -86,17 +108,17 @@ Config::Config(const string &in_config_name, const std::string &in_password)
 }
 
 
-void Config::save(const string in_config_name, const string in_password)
+void Config::save(const string in_config_name, const string in_passphrase)
 {
         // Provide both arguments or neither
-        assert((in_config_name.empty() && in_password.empty())
-               || (!in_config_name.empty() && !in_password.empty()));
-        if(!in_config_name.empty() && !in_password.empty()) {
+        assert((in_config_name.empty() && in_passphrase.empty())
+               || (!in_config_name.empty() && !in_passphrase.empty()));
+        if(!in_config_name.empty() && !in_passphrase.empty()) {
                 m_config_name = in_config_name;
-                m_password = in_password;
+                m_crypto_key = phrase_to_key(in_passphrase);
         }
 
-        assert(!m_password.empty());
+        assert(!m_crypto_key.empty());
         assert(!m_config_name.empty());
         
         ostringstream big_text_stream;
@@ -104,7 +126,7 @@ void Config::save(const string in_config_name, const string in_password)
         oa & *this;
         string big_text(big_text_stream.str()); // FIXME:  (Is this correct?  What about oa?)
         string plain_text = compress(big_text);
-        string cipher_text = encrypt(plain_text, in_password);
+        string cipher_text = encrypt(plain_text, m_crypto_key);
 
         // FIXME: Abstract this from block::write and so define only once
         ofstream fs(in_config_name, ios_base::binary | ios_base::trunc);
@@ -116,30 +138,16 @@ void Config::save(const string in_config_name, const string in_password)
 
 
 /*
-  Return the password with which the config block is encrypted.
-
-  FIXME:
-  We need this in order to re-save the config.
-  We probably shouldn't need this, and the way to get rid of it is
-  immediately to create a root block on creating an empty config.
-*/
-string Config::password()
-{
-        // And we shouldn't store this in the clear anyway
-        return m_password;
-}
-
-
-/*
   The crypto key for the root block.
   
   Every block stores the cryptographic keys for its children.
+  FIXME  Should we instead return a future for the block?
 */
-string Config::root_block_password()
+const string &Config::root_block_crypto_key() const
 {
         // FIXME  (Don't store in the clear, at least mask with an xor.)
         // FIXME  (Or maybe better than that.  Or maybe not at all.)
-        return m_root_password;
+        return m_root_crypto_key;
 }
 
 
@@ -155,7 +163,6 @@ void Config::serialize(Archive &in_ar, const unsigned int in_version)
         in_ar & m_remote_dir;
         in_ar & m_remote_host;
         in_ar & m_crypto_key;
-        in_ar & m_stage_type;
         in_ar & m_transport_type;
         in_ar & m_root_id;
 }
@@ -174,9 +181,7 @@ string Config::staging_dir() const
 */
 shared_ptr<Communicator> Config::receiver()
 {
-        if(m_receiver)
-                return m_receiver;
-        m_receiver = shared_ptr<Communicator>(new Communicator(make_stage(m_stage_type, m_local_dir), make_transport(m_transport_type, *this)));
+        assert(m_receiver);
         return m_receiver;
 }
 
@@ -187,9 +192,7 @@ shared_ptr<Communicator> Config::receiver()
 */
 shared_ptr<Communicator> Config::sender()
 {
-        if(m_sender)
-                return m_sender;
-        m_sender = shared_ptr<Communicator>(new Communicator(make_stage(m_stage_type, m_local_dir), make_transport(m_transport_type, *this)));
+        assert(m_sender);
         return m_sender;
 }
 

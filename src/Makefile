@@ -11,7 +11,6 @@ SRC = 				\
 	db.cpp			\
 	mode.cpp		\
 	root.cpp		\
-	stage.cpp		\
 	transport.cpp		\
 
 
@@ -53,7 +52,6 @@ TESTS = 			\
 	header_test		\
 	mode_test 		\
 	root_test		\
-	stage_test		\
 	transport_test		\
 
 # For a more verbose test, try e.g.

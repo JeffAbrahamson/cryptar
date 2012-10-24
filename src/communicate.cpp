@@ -29,24 +29,17 @@ using namespace cryptar;
 using namespace std;
 
 
-namespace {
-
-}
-
-
 /*
 
   Eventually set m_batch_size to 500 or something.  Tune to a value
   that makes sense.  Provide auto-tuning function so others can tune
   to their environments.
 
-  This owns the pointers.  Don't use the same Stage or Transport for
-  other purposes.   FIXME: why?
+  This owns the pointers.  Don't use the same Transport for
+  other purposes.   FIXME:  In process of switching to shared_ptr.
 */
-Communicator::Communicator(const Stage *in_stage,
-                           const Transport *in_transport)
+Communicator::Communicator(const Transport *in_transport)
         : m_batch_size(mode(Testing) ? communicator_test_batch_size : communicator_prod_batch_size),
-          m_stage(in_stage),
           m_transport(in_transport),
           m_needed(true)
 {
@@ -58,7 +51,6 @@ Communicator::Communicator(const Stage *in_stage,
 
 Communicator::~Communicator()
 {
-        delete m_stage;
         delete m_transport;
 }
 
@@ -173,17 +165,13 @@ void Communicator::comm_batch()
                         m_queue.pop();
                 }
         }
-        // We stage, transport, and then call completion routines
-        for_each(blocks_to_stage.begin(),
-                 blocks_to_stage.end(),
-                 //bind1st(mem_fun(&Stage::write), m_stage));
-                 ref(*m_stage));
-        m_transport->pre();
+        // FIXME:  Call transport pre and post appropriately
+        //m_transport->pre();
         for_each(blocks_to_stage.begin(),
                  blocks_to_stage.end(),
                  //bind1st(mem_fun(&Transport::transport), m_transport));
                  ref(*m_transport));
-        m_transport->post();
+        //m_transport->post();
         for_each(blocks_to_stage.begin(),
                  blocks_to_stage.end(),
                  boost::bind(&Block::completion_action, _1));

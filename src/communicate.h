@@ -27,7 +27,6 @@
 #include <queue>
 
 #include "block.h"
-#include "stage.h"
 #include "transport.h"
 
 
@@ -38,8 +37,7 @@ namespace cryptar {
 
         class Communicator {
         public:
-                Communicator(const Stage *in_stage,
-                             const Transport *in_transport);
+                Communicator(const Transport *in_transport);
                 ~Communicator();
 
                 void push(Block *);
@@ -60,8 +58,9 @@ namespace cryptar {
                   reference, but that makes instantiating this
                   annoying), then we slice the objects to the base.
                   So just use pointers.
+
+                  We own the m_transport.
                 */
-                const Stage *m_stage;
                 const Transport *m_transport;
 
                 bool m_needed;    /* set to false to encourage auto-shutdown */

@@ -22,9 +22,17 @@
 #ifndef __DB_H__
 #define __DB_H__ 1
 
+
+#include <memory>
+#include <string>
+
+#include "block.h"
+#include "config.h"
+
+
 namespace cryptar {
 
-        Template<T>
+        template<typename T>
         class DBSet {
                 /*
                   A DBSet presents a simple blob store.  On storing an
@@ -34,9 +42,10 @@ namespace cryptar {
 
                   The template parameter T is the thing that is
                   stored.  It should know how to serialize and
-                  unserialize itself.  (FIXME: Note interface.)
-                  T needn't (indeed, generally shouldn't) know
-                  anything else about cryptar or its block structure.
+                  unserialize itself.  (FIXME: Note interface.)  T
+                  needn't (indeed, generally shouldn't) know anything
+                  else about cryptar or its block structure.  Cryptar
+                  handles the security aspects.
                 */
 
                 /*
@@ -44,7 +53,7 @@ namespace cryptar {
 
                   The local store provides only enough data to contact
                   the local store and to request a root object.  All
-                  else is remote.  The root object is provides a
+                  else is remote.  The root object provides a
                   directory of remote store names and pointers to
                   their head blocks.  When the user requests a handle
                   to a remote store, we look in the root store and
@@ -55,12 +64,15 @@ namespace cryptar {
                   terminology.  Also move to some more logical place
                   (config.h?) and include here a pointer to the
                   comment.
+
+                  FIXME:  Talk about the W3C Remote Store standard.
+                  Perhaps support it, as well.
                 */
 
                 /* FIXME:  Probably constructor should be a friend of
                    the class that knows how to make these. */
         public:
-                DBSet();
+                DBSet(std::shared_ptr<Config> in_config, std::string in_dbname);
                 ~DBSet();
 
                 /*
@@ -73,15 +85,15 @@ namespace cryptar {
                 */
                 T get(const BlockId &in_id);
                 /* Insert a new T. */
-                put(const T &in_T);
+                void put(const T &in_T);
                 /* Update an existing T. */
-                put(const BlockId &in_id, const T &in_T);
-
+                void put(const BlockId &in_id, const T &in_T);
+                
         private:
-                /* Config?  Other? */
+                std::shared_ptr<Config> m_config;
         };
 
-        Template<T>
+        template<class T>
         class DBMap {
                 /* A DBMap presents the user with a key - value store.
                    The implementation, however, is a wrapper around a
@@ -93,7 +105,7 @@ namespace cryptar {
                 ~DBMap();
 
         private:
-                DBSet *m_dbset;
+                DBSet<T> *m_dbset;
         };
 
 }
