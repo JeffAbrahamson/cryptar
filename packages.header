@@ -1,0 +1,4 @@
+This is a list of some packages you're likely to need on a debian /
+ubuntu system in order to compile cryptar but that may not already be
+installed, even though you've installed g++.
+

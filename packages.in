@@ -1,0 +1,10 @@
+libpstreams-dev
+libbz2-dev
+libcrypto++
+libcrypto++
+libboost-program-options
+libboost-serialization
+libboost-test
+libboost-thread
+libboost-filesystem
+libboost-system
