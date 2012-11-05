@@ -34,6 +34,10 @@ using namespace std;
 
 namespace {
 
+        /*
+          Confirm that compression followed by decompression is the
+          identity function.
+        */
         void test_compress(const string &message)
         {
                 string compressed = compress(message);
@@ -45,6 +49,16 @@ namespace {
 
                 // Small messages might not compress.
                 BOOST_CHECK(message.size() < 100 || compressed.size() < message.size());
+
+                // Compressing random data works, too, in the sense
+                // that decompressing it returns what we started with.
+                for(int i = 0; i < 100; ++i) {
+                        string rand_message = filename_from_random_bits();
+                        string compressed = compress(rand_message);
+                        string decompressed = decompress(compressed);
+                        BOOST_CHECK(rand_message == decompressed);
+                }
+                
         }
 }
 
