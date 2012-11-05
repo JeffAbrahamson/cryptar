@@ -40,7 +40,8 @@ namespace cryptar {
 
         // Return a filename based on some optional random bits.
         // Random bits produced if none provided.
-        std::string filename_from_random_bits(const std::string in_random = "");
+        std::string filename_from_random_bits(const std::string &in_random);
+        std::string filename_from_random_bits();
 
         // Return a unique string
         std::string unique_string();

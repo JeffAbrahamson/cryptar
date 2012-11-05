@@ -210,17 +210,19 @@ string cryptar::pseudo_random_string(int length)
 }
 
 
+string cryptar::filename_from_random_bits()
+{
+        return filename_from_random_bits(string(""));
+};
+
 /*
   Return a filename based on some optional random bits.
   Random bits produced if none provided.
 */
-string cryptar::filename_from_random_bits(string in_random)
+string cryptar::filename_from_random_bits(const string &in_random)
 {
-        if(in_random == "")
-                in_random = pseudo_random_string();
-
         string digest;
-        CryptoPP::StringSource(in_random, true,
+        CryptoPP::StringSource(("" == in_random ? pseudo_random_string() : in_random), true,
                                new CryptoPP::Base64Encoder(new CryptoPP::StringSink(digest)));
         replace(digest.begin(), digest.end(), '/', '_');
         /*

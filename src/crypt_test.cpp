@@ -35,6 +35,9 @@ using namespace std;
 
 namespace {
 
+        /*
+          Check that message_digest() works as expected.
+        */
         void test_message_digest(const string &message)
         {
                 // I don't believe I will see a bug related to having a
@@ -58,7 +61,8 @@ namespace {
         
 
         /*
-          Confirm that phrase_to_key() does not change behavior.
+          Confirm that phrase_to_key() does not change behavior over
+          time.
         */
         void test_phrase_to_key(const string &message)
         {
@@ -67,7 +71,7 @@ namespace {
                 string key = phrase_to_key(message);
                 BOOST_CHECK(key.size() == answer.first);
                 string digest = message_digest(key);
-#if 0
+#if GENERATING_TEST_DATA
                 // For generating comparison data
                 cout << "        crypto_map.insert(pair<string, pair<int, string> >(string(\""
                      << message
@@ -83,8 +87,8 @@ namespace {
 
 
         /*
-          Return the number of errors that occur.  Return true if an
-          error occurs, false otherwise.
+          Confirm that encryption followed by decryption is the
+          identity function.
         */
         void test_encryption(const string &message)
         {
@@ -138,6 +142,9 @@ namespace {
         }
 
 
+        /*
+          Check that filename_from_random_bits() acts as expected.
+        */
         void test_filenames()
         {
                 cout << "  [begin random filename test]" << endl;
@@ -154,7 +161,15 @@ namespace {
                         string rand_2 = filename_from_random_bits(constant);
                         BOOST_CHECK(rand_1 == rand_2);
                 }
-                
+
+                for(int i = 0; i < 100; ++i) {
+                        // No input, different output
+                        string rand_1 = filename_from_random_bits();
+                        string rand_2 = filename_from_random_bits();
+                        BOOST_CHECK(rand_1 != rand_2);
+                }
+
+                // Filenames should not contain directory separator characters.
                 for(int i = 0; i < 100; ++i) {
                         string filename = filename_from_random_bits();
                         BOOST_CHECK_EQUAL(filename.size(), 56);
@@ -163,6 +178,9 @@ namespace {
         }
 
 
+        /*
+          Confirm that unique_string() produces unique strings.
+        */
         void test_unique()
         {
                 cout << "  [begin unique string test]" << endl;
