@@ -1,3 +1,6 @@
+See http://www.cryptar.com/ for a less technical description of
+cryptar and for some information about release times.
+
 Cryptar is rsync with an encrypted remote image.  That is, all data is
 compressed and encrypted locally, then sent to the remote host (where
 it is presumably useful to anyone but an authorized user with
