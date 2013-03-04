@@ -179,15 +179,17 @@ namespace {
 
 
         /*
-          Confirm that unique_string() produces unique strings.
+          Confirm that pseudo_random_string() produces unique strings.
+          Of course, it does only with extremely high probability.
+          But a failure is so unlikely we should assume a problem.
         */
         void test_unique()
         {
                 cout << "  [begin unique string test]" << endl;
-                unsigned int N = 10000;
+                unsigned int N = 100000;
                 set<string> s;
                 for(unsigned int i = 0; i < N; ++i)
-                        s.insert(unique_string());
+                        s.insert(pseudo_random_string());
                 
                 BOOST_CHECK(s.size() == N);
         }

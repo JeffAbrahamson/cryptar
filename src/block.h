@@ -43,7 +43,7 @@ namespace cryptar {
 
         /*
           Blocks come in several flavors.
-          In one dimenions, they represent files or directories.
+          In one dimension, they represent files or directories.
           
           In another dimension, they represent pieces of files, images
           (collections of pieces), or timelines (sequences of images).
@@ -51,7 +51,7 @@ namespace cryptar {
 
         class BlockId {
         public:
-                BlockId() { m_id = unique_string(); }
+                BlockId() { m_id = pseudo_random_string(); }
                 BlockId(const std::string in_id)
                         : m_id(in_id) {};
                 ~BlockId() {};
@@ -92,8 +92,8 @@ namespace cryptar {
           The action is invoked by operator().
 
           That is, on completion of the task, the task completer
-          should call have an ACT_Base reference A and call A()
-          to signal completion.
+          should have an ACT_Base reference A and call A() to signal
+          completion.
         */
         class ACT_Base {
         public:
@@ -104,9 +104,14 @@ namespace cryptar {
                 // In the first case, we've done what was reqeusted, there's no return.
                 // In the second case, we requested a BlockId.
                 // In the third, we requested a block.
-                virtual void operator()() { throw std::logic_error("operator()() in ACT_Base"); }
-                virtual void operator()(const BlockId &) { throw std::logic_error("operator()(const BlockId &) in ACT_Base"); }
-                virtual void operator()(const Block *) { throw std::logic_error("operator()(const Block *) in ACT_Base"); }
+                virtual void operator()()
+                { throw std::logic_error("operator()() in ACT_Base"); }
+                
+                virtual void operator()(const BlockId &)
+                { throw std::logic_error("operator()(const BlockId &) in ACT_Base"); }
+                
+                virtual void operator()(const Block *)
+                { throw std::logic_error("operator()(const Block *) in ACT_Base"); }
         };
 
         
@@ -167,7 +172,7 @@ namespace cryptar {
                 const BlockId &id() const { return m_id; }
                 
         protected:
-                std::string m_cipher_text; /* encrypted contents of this block */
+                std::string m_cipher_text;      /* encrypted contents of this block */
                 const std::string m_crypto_key; /* cryptographic key for this block */
                 BlockId m_id;                   /* identifier (in filesystem) for this block */
                 BlockStatus m_status;           /* status of this block */
