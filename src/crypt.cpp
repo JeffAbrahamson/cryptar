@@ -222,7 +222,7 @@ string cryptar::filename_from_random_bits()
 string cryptar::filename_from_random_bits(const string &in_random)
 {
         string digest;
-        CryptoPP::StringSource(("" == in_random ? pseudo_random_string() : in_random), true,
+        CryptoPP::StringSource((in_random.empty() ? pseudo_random_string() : in_random), true,
                                new CryptoPP::Base64Encoder(new CryptoPP::StringSink(digest)));
         replace(digest.begin(), digest.end(), '/', '_');
         /*

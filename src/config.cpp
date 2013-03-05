@@ -95,7 +95,7 @@ Config::Config(const string &in_config_name, const std::string &in_password)
 {
         if(mode(Verbose))
                 cout << "Loading Config(" << in_config_name << ")" << endl;
-        if("" == in_config_name)
+        if(in_config_name.empty())
                 // FIXME:  Also check that file exists
                 return;
 
