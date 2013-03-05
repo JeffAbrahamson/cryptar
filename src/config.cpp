@@ -90,7 +90,7 @@ Config::Config(const string &in_passphrase)
   
   This should only be called by make_config(), above.
 */
-Config::Config(const string &in_config_name, const std::string &in_password)
+Config::Config(const string &in_config_name, const std::string &in_passphrase)
         : m_transport_type(transport_invalid)
 {
         if(mode(Verbose))
@@ -99,7 +99,9 @@ Config::Config(const string &in_config_name, const std::string &in_password)
                 // FIXME:  Also check that file exists
                 return;
 
-        ifstream fs(in_config_name, ios_base::binary);
+        m_config_name = in_config_name;
+        m_crypto_key = phrase_to_key(in_passphrase);
+        ifstream fs(m_config_name, ios_base::binary);
         // FIXME.  I've now repeated this same pattern here and in block::read().
         //         Abstract to a function.
         fs.seekg(0, ios::end);
@@ -110,7 +112,7 @@ Config::Config(const string &in_config_name, const std::string &in_password)
         string cipher_text = string(buffer, length);
         fs.close();
 
-        string plain_text = decrypt(cipher_text, in_password);
+        string plain_text = decrypt(cipher_text, m_crypto_key);
         string big_text = decompress(plain_text);
         istringstream big_text_stream(big_text);
         boost::archive::text_iarchive ia(big_text_stream);
@@ -130,7 +132,7 @@ void Config::save(const string in_config_name, const string in_passphrase)
 
         assert(!m_crypto_key.empty());
         assert(!m_config_name.empty());
-        
+
         ostringstream big_text_stream;
         boost::archive::text_oarchive oa(big_text_stream);
         oa & *this;

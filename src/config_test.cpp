@@ -34,7 +34,7 @@
 using namespace cryptar;
 using namespace std;
 
-#if FIXME
+
 namespace {
         
         void test_persist()
@@ -51,47 +51,29 @@ namespace {
                 const TransportType transport_type = fs_out;
 
                 const string filename("/tmp/cryptar-config-test-" + filename_from_random_bits());
-                const string password(pseudo_random_string());
+                const string passphrase(pseudo_random_string());
 
-                Config c;
-                c.local_dir(local_dir);
-                c.remote_dir(remote_dir);
-                c.remote_host(remote_host);
-                c.crypto_key(crypto_key);
-                c.transport_type(transport_type);
-                c.save(filename, password);
+                shared_ptr<Config> c = make_config(passphrase);
+                c->local_dir(local_dir);
+                c->remote_dir(remote_dir);
+                c->remote_host(remote_host);
+                c->crypto_key(crypto_key);
+                c->transport_type(transport_type);
+                c->save(filename, passphrase);
 
-                Config c2(filename, password);
-                BOOST_CHECK(c2.local_dir() == local_dir);
-                BOOST_CHECK(c2.remote_dir() == remote_dir);
-                BOOST_CHECK(c2.remote_host() == remote_host);
-                BOOST_CHECK(c2.crypto_key() == crypto_key);
-                BOOST_CHECK(c2.stage_type() == stage_type);
-                BOOST_CHECK(c2.transport_type() == transport_type);
+                shared_ptr<Config> c2 = make_config(filename, passphrase);
+                BOOST_CHECK(c2->local_dir() == local_dir);
+                BOOST_CHECK(c2->remote_dir() == remote_dir);
+                BOOST_CHECK(c2->remote_host() == remote_host);
+                // We don't otherwise reveal crypto_key(), so don't test it
+                //BOOST_CHECK(c2->crypto_key() == crypto_key);
+                BOOST_CHECK(c2->transport_type() == transport_type);
 
                 // FIXME: cleanup filename
         }
 
 
-        /*
-          Create a test config file.
-        */
-        Config make_config()
-        {
-                Config c("");
-                c.local_dir("invalid"); // db interface doesn't care about local directory
-                c.remote_dir(filename_from_random_bits());
-                c.remote_host(pseudo_random_string());
-                c.crypto_key(pseudo_random_string());
-                c.transport_type(fs_out);
-                const string filename("/tmp/cryptar-config-test-" + filename_from_random_bits());
-                const string password(pseudo_random_string());
-                c.save(filename, password);
-                // FIXME: cleanup filename at end
-                return c;
-        }
-
-        
+#if 0
         /*
           Store data using the db interface, then recover the data.
         */
@@ -101,12 +83,11 @@ namespace {
                 mode(Verbose, true);
                 mode(Testing, true);
                 mode(Threads, threaded);
-
-                Config config(make_config());
                 
-                // FIXME:  Why is this test here?  Should it be here?  Finish it somewhere, but probably in db_test.cpp.
+                // FIXME: Why  is this test here?  Should  it be here?
+                // Finish it somewhere, but probably in db_test.cpp.
         }
-        
+#endif   
 }
 
 
@@ -116,9 +97,11 @@ BOOST_AUTO_TEST_CASE(persist)
 }
 
 
+#if 0
 BOOST_AUTO_TEST_CASE(db_end_to_end)
 {
         test_end_to_end(false);
         test_end_to_end(true);
 }
 #endif
+
