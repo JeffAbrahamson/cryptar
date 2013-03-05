@@ -72,7 +72,6 @@ namespace {
         }
 
 
-#if FIX_ME
         /*
           Serialisation test.  Just serialise a block to a file and restore it.
         */
@@ -87,7 +86,7 @@ namespace {
                 string content = pseudo_random_string(100);
                 DataBlock *bp = block_by_content<DataBlock>(pass, content);
                 const string staging_dir(temp_file_name());
-                TransportOutFS transport(staging_dir); // causes local_dir to be created
+                TransportFSOut transport(staging_dir); // causes local_dir to be created
                 bp->write(staging_dir);
                 const BlockId id = bp->id();
                 BOOST_CHECK_EQUAL(content, bp->plain_text());
@@ -96,7 +95,6 @@ namespace {
                 bp2->read(staging_dir);
                 BOOST_CHECK_EQUAL(content, bp2->plain_text());
         }
-#endif        
 
                 
         int num_completions;

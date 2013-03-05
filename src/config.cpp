@@ -51,8 +51,10 @@ shared_ptr<Config> cryptar::make_config(const string &in_config_name, const stri
 {
         shared_ptr<Config> config = shared_ptr<Config>(new Config(in_config_name, in_passphrase));
         // FIXME  Fix this actually to look up transport type.  For now we only have one.
-        config->m_sender = shared_ptr<Communicator>(new Communicator(make_transport(fs_out, shared_ptr<Config>(config))));
-        config->m_receiver = shared_ptr<Communicator>(new Communicator(make_transport(fs_in, shared_ptr<Config>(config))));
+        config->m_sender = shared_ptr<Communicator>
+                (new Communicator(make_transport(fs_out, shared_ptr<Config>(config))));
+        config->m_receiver = shared_ptr<Communicator>
+                (new Communicator(make_transport(fs_in, shared_ptr<Config>(config))));
         return config;
 }
 
@@ -60,6 +62,7 @@ shared_ptr<Config> cryptar::make_config(const string &in_config_name, const stri
 
 /*
   For making new configs from scratch.
+  This should only be called by make_config(), above.
 */
 Config::Config(const string &in_passphrase)
 {
@@ -84,14 +87,21 @@ Config::Config(const string &in_passphrase)
   comment should probably move to the change password function once
   it's written, as well as being reproduced in some form in the docs.
   To draw attention to which, I invoke FIXME.)
+  
+  This should only be called by make_config(), above.
 */
 Config::Config(const string &in_config_name, const std::string &in_password)
         : m_transport_type(transport_invalid)
 {
         if(mode(Verbose))
                 cout << "Loading Config(" << in_config_name << ")" << endl;
+        if("" == in_config_name)
+                // FIXME:  Also check that file exists
+                return;
+
         ifstream fs(in_config_name, ios_base::binary);
-        // FIXME.  I've now repeated this same pattern here and in block::read().  Abstract to a function.
+        // FIXME.  I've now repeated this same pattern here and in block::read().
+        //         Abstract to a function.
         fs.seekg(0, ios::end);
         int length = fs.tellg();
         fs.seekg(0, ios::beg);
@@ -99,7 +109,7 @@ Config::Config(const string &in_config_name, const std::string &in_password)
         fs.read(buffer, length);
         string cipher_text = string(buffer, length);
         fs.close();
-        
+
         string plain_text = decrypt(cipher_text, in_password);
         string big_text = decompress(plain_text);
         istringstream big_text_stream(big_text);

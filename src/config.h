@@ -60,11 +60,14 @@ namespace cryptar {
           How to get it there.
 
           FIXME  Distinguish between a password and a crypto key.  (The former is the user's idea.)
-          FIXME  Who is responsible for transforming passwords (passphrases) into crypto keys?  Surely crypt.cpp.
+          
+          FIXME Who is responsible for transforming passwords
+          (passphrases) into crypto keys?  Surely crypt.cpp.
         */
         class Config {
                 friend std::shared_ptr<Config> make_config(const std::string &in_passphrase);
-                friend std::shared_ptr<Config> make_config(const std::string &in_config_name, const std::string &in_passphrase);
+                friend std::shared_ptr<Config> make_config(const std::string &in_config_name,
+                                                           const std::string &in_passphrase);
                 
         private:
                 /* Make a new config. */
@@ -74,7 +77,8 @@ namespace cryptar {
 
         public:
                 // Do I store the key or require it here?
-                void save(const std::string in_name = std::string(), const std::string in_passphrase = std::string());
+                void save(const std::string in_name = std::string(),
+                          const std::string in_passphrase = std::string());
 
                 //// Begin accessors /////////////////////////////////////
                 const std::string &local_dir() const { return m_local_dir; };

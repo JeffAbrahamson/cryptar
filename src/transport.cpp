@@ -35,7 +35,8 @@ using namespace std;
 /*
   Factory method to build transport objects from transport types.
 */
-Transport *cryptar::make_transport(TransportType in_transport_type, const shared_ptr<Config> in_config)
+Transport *cryptar::make_transport(TransportType in_transport_type,
+                                   const shared_ptr<Config> in_config)
 {
         switch(in_transport_type) {
         case transport_invalid:
@@ -68,6 +69,30 @@ Transport *cryptar::make_transport(TransportType in_transport_type, const shared
 }
 
 
+Transport *cryptar::make_transport(const std::shared_ptr<Config> config)
+{
+        return make_transport(no_transport, config);
+}
+
+NoTransport *cryptar::make_no_transport(const std::shared_ptr<Config> config)
+{
+        return dynamic_cast<NoTransport *>(make_transport(no_transport, config));
+}
+
+
+TransportFSOut *cryptar::make_transport_fsout(const std::shared_ptr<Config> config)
+{
+        return dynamic_cast<TransportFSOut *>(make_transport(fs_out, config));
+}
+
+
+TransportFSIn *cryptar::make_transport_fsin(const std::shared_ptr<Config> config)
+{
+        return dynamic_cast<TransportFSIn *>(make_transport(fs_in, config));
+}
+
+
+
 // FIXME  FSIn and FSOut are similar, refactor together
 
 
@@ -77,7 +102,7 @@ Transport *cryptar::make_transport(TransportType in_transport_type, const shared
 TransportFSOut::TransportFSOut(const shared_ptr<Config> in_config)
         : Transport(in_config), m_local_dir(in_config->local_dir())
 {
-        if(mkdir(m_local_dir.c_str(), 0700) && EEXIST != errno) {
+        if(!m_local_dir.empty() && mkdir(m_local_dir.c_str(), 0700) && EEXIST != errno) {
                 cerr << "  Error creating directory \""
                      << m_local_dir << "\": " << strerror(errno) << endl;
                 throw(runtime_error("Failed to create staging directory."));
@@ -101,7 +126,7 @@ void TransportFSOut::operator()(Block *bp) const
 TransportFSIn::TransportFSIn(const shared_ptr<Config> in_config)
         : Transport(in_config), m_local_dir(in_config->local_dir())
 {
-        if(mkdir(m_local_dir.c_str(), 0700) && EEXIST != errno) {
+        if(!m_local_dir.empty() && mkdir(m_local_dir.c_str(), 0700) && EEXIST != errno) {
                 cerr << "  Error creating directory \""
                      << m_local_dir << "\": " << strerror(errno) << endl;
                 throw(runtime_error("Failed to create staging directory."));

@@ -32,7 +32,8 @@
 namespace cryptar {
 
         class Transport;
-        Transport *make_transport(TransportType in_transport_type, const std::shared_ptr<Config> in_config);
+        Transport *make_transport(TransportType in_transport_type,
+                                  const std::shared_ptr<Config> in_config);
 
         /*
           The base transport class does nothing (i.e., no transport).
@@ -43,7 +44,8 @@ namespace cryptar {
         class Transport {
         protected:
                 Transport(const std::shared_ptr<Config> in_config) {};
-                friend Transport *cryptar::make_transport(TransportType in_transport_type, const std::shared_ptr<Config> in_config);
+                friend Transport *cryptar::make_transport(TransportType in_transport_type,
+                                                          const std::shared_ptr<Config> in_config);
                 
         public:
                 virtual ~Transport() {};
@@ -73,9 +75,8 @@ namespace cryptar {
                 //std::shared_ptr<Config> m_config;
         };
 
-
-        Transport *make_transport(TransportType in_transport_type, const std::shared_ptr<Config> config);
-
+        Transport *make_transport(const std::shared_ptr<Config> config);
+        
 
         /*
           Transport class that does nothing.
@@ -87,7 +88,8 @@ namespace cryptar {
         protected:
                 NoTransport(const std::shared_ptr<Config> in_config)
                         : Transport(in_config) {};
-                friend Transport *cryptar::make_transport(TransportType in_transport_type, const std::shared_ptr<Config> in_config);
+                friend Transport *cryptar::make_transport(TransportType in_transport_type,
+                                                          const std::shared_ptr<Config> in_config);
 
         public:
                 virtual TransportType transport_type() { return no_transport; }
@@ -96,6 +98,8 @@ namespace cryptar {
                 virtual void operator()(Block *bp) const {};
                 virtual void post() const {};
         };
+
+        NoTransport *make_no_transport(const std::shared_ptr<Config> config);
 
 
         /*
@@ -107,7 +111,8 @@ namespace cryptar {
         class TransportFSOut : public Transport {
         protected:
                 TransportFSOut(const std::shared_ptr<Config> in_config);
-                friend Transport *cryptar::make_transport(TransportType in_transport_type, const std::shared_ptr<Config> in_config);
+                friend Transport *cryptar::make_transport(TransportType in_transport_type,
+                                                          const std::shared_ptr<Config> in_config);
 
         public:
                 virtual ~TransportFSOut() {};
@@ -121,7 +126,9 @@ namespace cryptar {
                 const std::string m_local_dir;
         };
 
+        TransportFSOut *make_transport_fsout(const std::shared_ptr<Config> config);
 
+        
         /*
           Read blocks from the file system.
           The config will tell us where to find them.
@@ -131,7 +138,8 @@ namespace cryptar {
         class TransportFSIn : public Transport {
         protected:
                 TransportFSIn(const std::shared_ptr<Config> in_config);
-                friend Transport *cryptar::make_transport(TransportType in_transport_type, const std::shared_ptr<Config> in_config);
+                friend Transport *cryptar::make_transport(TransportType in_transport_type,
+                                                          const std::shared_ptr<Config> in_config);
 
         public:
                 virtual ~TransportFSIn() {};
@@ -145,7 +153,9 @@ namespace cryptar {
                 const std::string m_local_dir;
         };
 
+        TransportFSIn *make_transport_fsin(const std::shared_ptr<Config> config);
 
+        
         // FIXME:  We'll also want TransportTLSIn and TransportTLSOut.
         //         They will require a wire protocol.  Cf. ../dev/comm.txt.
         

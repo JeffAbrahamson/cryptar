@@ -34,29 +34,32 @@
 using namespace cryptar;
 using namespace std;
 
-#if FIXME
+
 namespace {
 
         void test_types()
         {
-                shared_ptr<Config> c(new Config(""));
-                NoTransport t1(c);
-                BOOST_CHECK(no_transport == t1.transport_type());
-                Transport *mt1 = make_transport(no_transport, c);
+                string passphrase = pseudo_random_string();
+                shared_ptr<Config> c = make_config(passphrase);
+
+                /* We'll make transport objects directly (to make sure
+                   the base class is correctly polymorphic) and
+                   through the dedicated factory functions.
+                */
+                Transport *t1 = make_transport(no_transport, c);
+                BOOST_CHECK(no_transport == t1->transport_type());
+                NoTransport *mt1 = make_no_transport(c);
                 BOOST_CHECK(no_transport == mt1->transport_type());
-                //////// and check dynamic type as well  FIXME
-
-                TransportFSOut t2(c);
-                BOOST_CHECK(fs_out == t2.transport_type());
-                Transport *mt2 = make_transport(fs_out, c);
+                
+                Transport *t2 = make_transport(fs_out, c);
+                BOOST_CHECK(fs_out == t2->transport_type());
+                TransportFSOut *mt2 = make_transport_fsout(c);
                 BOOST_CHECK(fs_out == mt2->transport_type());
-                //////// and check dynamic type as well   FIXME
 
-                TransportFSIn t3(c);
-                BOOST_CHECK(fs_in == t3.transport_type());
-                Transport *mt3 = make_transport(fs_in, c);
+                Transport *t3 = make_transport(fs_in, c);
+                BOOST_CHECK(fs_in == t3->transport_type());
+                TransportFSIn *mt3 = make_transport_fsin(c);
                 BOOST_CHECK(fs_in == mt3->transport_type());
-                //////// and check dynamic type as well   FIXME
         }
         
 }
@@ -68,4 +71,4 @@ BOOST_AUTO_TEST_CASE(types)
         cout << "  [types]" << endl;
         test_types();
 }
-#endif
+
