@@ -140,7 +140,6 @@ namespace {
         };
         
 
-#if FIXME        
         /*
           Queue some blocks for transfer.
           Their completion methods just check that encryption is working.
@@ -152,9 +151,9 @@ namespace {
                 //mode(Verbose, true);
                 mode(Testing, true);
                 mode(Threads, thread);
-                Config config("");
-                config.transport_type(no_transport);
-                shared_ptr<Communicator> c = config.sender();
+                const string passphrase(pseudo_random_string());
+                shared_ptr<Config> config = make_config(passphrase);
+                shared_ptr<Communicator> comm_send = config->sender();
 
                 // Start with 1 so that we can verify that ACT's have
                 // been initialized.
@@ -164,21 +163,20 @@ namespace {
                         string content = pseudo_random_string(100);
                         DataBlock *bp = block_by_content<DataBlock>(pass, content);
                         bp->completion_action(new ACT_Check(bp, content));
-                        c->push(bp);
+                        comm_send->push(bp);
                 }
 
                 // process the communication queue, once if thread == false,
                 // completely otherwise.
                 if(thread) {
-                        c->wait();
+                        comm_send->wait();
                         BOOST_CHECK_EQUAL(num_completions, loop_num);
                 } else {
-                        (*c)();
+                        (*comm_send)();
                         const int expected_num = min(loop_num, communicator_test_batch_size);
                         BOOST_CHECK_EQUAL(num_completions, expected_num);
                 }
         }
-#endif
         
 
 #if FIXME
@@ -279,12 +277,10 @@ BOOST_AUTO_TEST_CASE(case_serialisation)
         check_serialise();
 }
 
-#if FIXME
 BOOST_AUTO_TEST_CASE(case_print_completion_one)
 {
         check_completion(false);
 }
-#endif
 
 #if FIXME
 BOOST_AUTO_TEST_CASE(case_print_completion_thread)

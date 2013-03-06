@@ -52,7 +52,8 @@ namespace cryptar {
         
 
         std::shared_ptr<Config> make_config(const std::string &in_passphrase);
-        std::shared_ptr<Config> make_config(const std::string &in_config_name, const std::string &in_passphrase);
+        std::shared_ptr<Config> make_config(const std::string &in_config_name,
+                                            const std::string &in_passphrase);
         
         /*
           What to back up.
@@ -73,7 +74,8 @@ namespace cryptar {
                 /* Make a new config. */
                 Config(const std::string &in_passphrase);
                 /* Load a config by name. */
-                Config(const std::string &in_config_name, const std::string &in_passphrase);
+                Config(const std::string &in_config_name,
+                       const std::string &in_passphrase);
 
         public:
                 // Do I store the key or require it here?
