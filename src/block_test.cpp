@@ -26,6 +26,8 @@
 #include <map>
 #include <string>
 #include <utility>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "cryptar.h"
 #include "test_text.h"
@@ -82,17 +84,38 @@ namespace {
                 mode(Testing, true);
                 mode(Threads, false);
                 
-                string pass = pseudo_random_string();
-                string content = pseudo_random_string(100);
-                DataBlock *bp = block_by_content<DataBlock>(pass, content);
-                const string staging_dir(temp_file_name());
-                TransportFSOut transport(staging_dir); // causes local_dir to be created
-                bp->write(staging_dir);
+                const string crypto_key(pseudo_random_string());
+                const string content(pseudo_random_string(100));
+                const string local_dir(temp_file_name());
+                //shared_ptr<Config> c = make_config(passphrase);
+                //c->local_dir(local_dir);
+                if(mkdir(local_dir.c_str(), 0700)) {
+                        // FIXME  I've repeated this here and in block.cpp.
+                        // Abstract to a function.
+                        const size_t len = 1024; // arbitrary
+                        char errstr[len];
+                        int errnum = errno;
+#if (_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && ! _GNU_SOURCE
+                        strerror_r(errnum, errstr, len);
+                        cerr << "Block write error: " << errstr << endl;
+#else
+                        // I'm not quite clear why the man page wants us to
+                        // pass errstr and len, but GNU libc clearly puts the
+                        // error message in the returned char*.
+                        char *errstr_r = strerror_r(errnum, errstr, len);
+                        cerr << "Block write error: " << errstr_r << endl;
+#endif
+                        throw("test failed");
+                }
+
+
+                DataBlock *bp = block_by_content<DataBlock>(crypto_key, content);
+                bp->write(local_dir);
                 const BlockId id = bp->id();
                 BOOST_CHECK_EQUAL(content, bp->plain_text());
 
-                DataBlock *bp2 = block_by_id<DataBlock>(pass, id);
-                bp2->read(staging_dir);
+                DataBlock *bp2 = block_by_id<DataBlock>(crypto_key, id);
+                bp2->read(local_dir);
                 BOOST_CHECK_EQUAL(content, bp2->plain_text());
         }
 
@@ -251,12 +274,10 @@ BOOST_AUTO_TEST_CASE(case_data_block)
         check_data_block();
 }
 
-#if FIXME
 BOOST_AUTO_TEST_CASE(case_serialisation)
 {
         check_serialise();
 }
-#endif
 
 #if FIXME
 BOOST_AUTO_TEST_CASE(case_print_completion_one)

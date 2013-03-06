@@ -98,10 +98,14 @@ namespace cryptar {
                  */
                 //const std::string &crypto_key() const { return m_crypto_key; };
                 void crypto_key(const std::string &in) { m_crypto_key = in; };
-                
+
+                /*
+                  // I think this should be private, maybe not even stored.
+                  // We just need it to create the two comm channels.
                 const TransportType &transport_type() const { return m_transport_type; };
                 void transport_type(const TransportType &in) { m_transport_type = in; };
-
+                */
+                
         private:
                 /* We need to be able to create a root block from the
                    config so that when we create a config, we can
