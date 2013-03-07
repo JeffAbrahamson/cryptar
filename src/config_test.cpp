@@ -45,7 +45,7 @@ namespace {
                 mode(Threads, false);
 
                 ConfigParam params;
-                params.m_local_dir = filename_from_random_bits();
+                params.m_local_dir = "/tmp/cryptar-config-test-" + filename_from_random_bits();
                 params.m_remote_dir = filename_from_random_bits();
                 params.m_remote_host = pseudo_random_string();
                 params.m_passphrase = pseudo_random_string();

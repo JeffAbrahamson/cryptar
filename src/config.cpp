@@ -173,12 +173,40 @@ void Config::save(const string in_config_name, const string in_passphrase)
         string cipher_text = encrypt(plain_text, m_crypto_key);
 
         // FIXME: Abstract this from block::write and so define only once
-        ofstream fs(in_config_name, ios_base::binary | ios_base::trunc);
+        ofstream fs(m_config_name, ios_base::binary | ios_base::trunc);
         fs.write(cipher_text.data(), cipher_text.size());
-        
+        if(!fs)
+                throw_system_error("Config::save()");
         if(mode(Verbose))
                 cout << "Config saved." << endl;
 }
+
+
+
+/*
+  Signal a fatal error from some system function.
+  Mostly, this is for filesystem errors.
+
+  FIXME    This is a candidate for being in a general utility area.
+*/
+void cryptar::throw_system_error(const string &label)
+{
+        const size_t len = 1024; // arbitrary
+        char errstr[len];
+        int errnum = errno;
+#if (_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && ! _GNU_SOURCE
+        strerror_r(errnum, errstr, len);
+        cerr << label << " error: " << errstr << endl;
+#else
+        // I'm not quite clear why the man page wants us to
+        // pass errstr and len, but GNU libc clearly puts the
+        // error message in the returned char*.
+        char *errstr_r = strerror_r(errnum, errstr, len);
+        cerr << label << " error: " << errstr_r << endl;
+#endif
+        throw(label);
+}
+
 
 
 /*

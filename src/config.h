@@ -34,6 +34,8 @@
 
 namespace cryptar {
 
+        void throw_system_error(const std::string &label);
+        
         class Communicator;
         class Config;
         
