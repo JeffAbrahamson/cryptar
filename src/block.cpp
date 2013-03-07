@@ -25,6 +25,7 @@
 
 #include "block.h"
 #include "compress.h"
+#include "config.h"
 #include "crypt.h"
 
 
@@ -170,22 +171,8 @@ void Block::write(const string &in_dir, bool flat) const
         string filename = id_to_pathname(in_dir, flat);
         ofstream fs(filename, ios_base::binary | ios_base::trunc);
         fs.write(m_cipher_text.data(), m_cipher_text.size());
-        if(!fs) {
-                const size_t len = 1024; // arbitrary
-                char errstr[len];
-                int errnum = errno;
-#if (_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && ! _GNU_SOURCE
-                strerror_r(errnum, errstr, len);
-                cerr << "Block write error: " << errstr << endl;
-#else
-                // I'm not quite clear why the man page wants us to
-                // pass errstr and len, but GNU libc clearly puts the
-                // error message in the returned char*.
-                char *errstr_r = strerror_r(errnum, errstr, len);
-                cerr << "Block write error: " << errstr_r << endl;
-#endif
-                throw("Block::write()");
-        }
+        if(!fs)
+                throw_system_error("Block::write()");
         fs.close();
 }
 

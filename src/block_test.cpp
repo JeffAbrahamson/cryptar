@@ -89,25 +89,8 @@ namespace {
                 const string local_dir(temp_file_name());
                 //shared_ptr<Config> c = make_config(passphrase);
                 //c->local_dir(local_dir);
-                if(mkdir(local_dir.c_str(), 0700)) {
-                        // FIXME  I've repeated this here and in block.cpp.
-                        // Abstract to a function.
-                        const size_t len = 1024; // arbitrary
-                        char errstr[len];
-                        int errnum = errno;
-#if (_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && ! _GNU_SOURCE
-                        strerror_r(errnum, errstr, len);
-                        cerr << "Block write error: " << errstr << endl;
-#else
-                        // I'm not quite clear why the man page wants us to
-                        // pass errstr and len, but GNU libc clearly puts the
-                        // error message in the returned char*.
-                        char *errstr_r = strerror_r(errnum, errstr, len);
-                        cerr << "Block write error: " << errstr_r << endl;
-#endif
-                        throw("test failed");
-                }
-
+                if(mkdir(local_dir.c_str(), 0700))
+                        throw_system_error("check_serialize()");
 
                 DataBlock *bp = block_by_content<DataBlock>(crypto_key, content);
                 bp->write(local_dir);
@@ -151,8 +134,12 @@ namespace {
                 //mode(Verbose, true);
                 mode(Testing, true);
                 mode(Threads, thread);
-                const string passphrase(pseudo_random_string());
-                shared_ptr<Config> config = make_config(passphrase);
+                
+                ConfigParam params;
+                params.m_passphrase = pseudo_random_string();
+                params.m_local_dir = "/tmp/cryptar-block-test-" + filename_from_random_bits();
+                params.m_transport_type = fs;
+                shared_ptr<Config> config = make_config(params);
                 shared_ptr<Communicator> comm_send = config->sender();
 
                 // Start with 1 so that we can verify that ACT's have
@@ -179,7 +166,6 @@ namespace {
         }
         
 
-#if FIXME
         /*
           Queue some blocks for transfer.  Stage them to files and delete the blocks.
           Queue some blocks for transfer, recover from staged.
@@ -192,7 +178,12 @@ namespace {
                 mode(Verbose, true);
                 mode(Testing, true);
                 mode(Threads, thread);
-                const string staging_dir(temp_file_name());
+
+                ConfigParam params;
+                params.m_passphrase = pseudo_random_string();
+                params.m_local_dir = "/tmp/cryptar-block-test-"
+                        + filename_from_random_bits();
+                params.m_transport_type = fs;
 
                 struct BlockNote {
                         BlockNote(const BlockId &in_id,
@@ -207,10 +198,12 @@ namespace {
                 vector<BlockNote> blocks;
                 const int loop_num = 10;
                 {
-                        Config config();
-                        config.local_dir(staging_dir);
-                        config.transport_type(no_transport);
-                        shared_ptr<Communicator> c_send = config.sender();
+                        shared_ptr<Config> config = make_config(params);
+                        shared_ptr<Communicator> comm_send = config->sender();
+                        if(mkdir(params.m_local_dir.c_str(), 0700))
+                                throw_system_error("check_staging()");
+
+                        shared_ptr<Communicator> c_send = config->sender();
 
                         // Start with 1 so that we can verify that ACT's have
                         // been initialized.
@@ -237,10 +230,8 @@ namespace {
 
                 // Now fetch those same blocks from the staging area.
                 num_completions = 0;
-                Config config();
-                config.local_dir(staging_dir);
-                config.transport_type(no_transport);
-                shared_ptr<Communicator> c_recv = config.receiver();
+                shared_ptr<Config> config = make_config(params);
+                shared_ptr<Communicator> c_recv = config->receiver();
 
                 for(auto it = blocks.begin(); it != blocks.end(); ++it) {
                         DataBlock *bp = block_by_id<DataBlock>(it->m_pass, it->m_id);
@@ -258,7 +249,6 @@ namespace {
                         BOOST_CHECK_EQUAL(num_completions, expected_num);
                 }
         }
-#endif
 }
 
 
@@ -282,12 +272,10 @@ BOOST_AUTO_TEST_CASE(case_print_completion_one)
         check_completion(false);
 }
 
-#if FIXME
 BOOST_AUTO_TEST_CASE(case_print_completion_thread)
 {
         check_completion(true);
 }
-#endif
 
 #if FIXME
 BOOST_AUTO_TEST_CASE(case_print_staging_one)

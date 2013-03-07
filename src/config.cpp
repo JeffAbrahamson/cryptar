@@ -53,7 +53,14 @@ using namespace std;
 */
 shared_ptr<Config> cryptar::make_config(const struct ConfigParam &param)
 {
-        return shared_ptr<Config>(new Config(param));
+        shared_ptr<Config> config = shared_ptr<Config>(new Config(param));
+        // FIXME    The remainder is repeated with the other make_config().
+        // FIXME  Fix this actually to look up transport type.  For now we only have one, fs.
+        config->m_sender = shared_ptr<Communicator>
+                (new Communicator(make_transport(fs_out, shared_ptr<Config>(config))));
+        config->m_receiver = shared_ptr<Communicator>
+                (new Communicator(make_transport(fs_in, shared_ptr<Config>(config))));
+        return config;
 }
 
 
