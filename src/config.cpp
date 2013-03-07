@@ -39,18 +39,28 @@ using namespace std;
 
 /*
   Cf. comments at Config::Config below.
+
+  We can make new configs by specifying a filename and passphrase, in
+  which case we load the named file, decrypt using the passphrase, and
+  rehydrate the config.  The file contains the information that we
+  would have provided in a ConfigParam instance (below).
+
+  Alternately, we can instantiate with a ConfigParams structure, which
+  lets us create a new and as yet unpersisted config.  Missing
+  elements of the ConfigParam are usually ignored until needed (and
+  then generally result in errors, but we can't know in advance what
+  set of features will be needed).
 */
-shared_ptr<Config> cryptar::make_config(const string &in_passphrase)
+shared_ptr<Config> cryptar::make_config(const struct ConfigParam &param)
 {
-        // FIXME  Needs a transport type.
-        return make_config("", in_passphrase);
+        return shared_ptr<Config>(new Config(param));
 }
 
 
 shared_ptr<Config> cryptar::make_config(const string &in_config_name, const string &in_passphrase)
 {
         shared_ptr<Config> config = shared_ptr<Config>(new Config(in_config_name, in_passphrase));
-        // FIXME  Fix this actually to look up transport type.  For now we only have one.
+        // FIXME  Fix this actually to look up transport type.  For now we only have one, fs.
         config->m_sender = shared_ptr<Communicator>
                 (new Communicator(make_transport(fs_out, shared_ptr<Config>(config))));
         config->m_receiver = shared_ptr<Communicator>
@@ -61,12 +71,20 @@ shared_ptr<Config> cryptar::make_config(const string &in_config_name, const stri
 
 
 /*
-  For making new configs from scratch.
-  This should only be called by make_config(), above.
+  For making new configs from nothing at all.
+  Provide what parameters we can in param.
 */
-Config::Config(const string &in_passphrase)
+Config::Config(const struct ConfigParam &params)
+        : m_local_dir(params.m_local_dir),
+          m_remote_dir(params.m_remote_dir),
+          m_remote_host(params.m_remote_host),
+          m_transport_type(params.m_transport_type),
+          m_config_name(params.m_config_name)
 {
+        if(!params.m_passphrase.empty())
+                m_crypto_key = phrase_to_key(params.m_passphrase);
 }
+
 
 
 /*
@@ -120,6 +138,20 @@ Config::Config(const string &in_config_name, const std::string &in_passphrase)
 }
 
 
+/*
+  Persist the Config.
+
+  With no arguments (meaning, using the default arguments of empty
+  strings), persist the config to the same file as previously and with
+  the same passphrase.  Both filename and passphrase must be specified
+  if either are, and the function will fail if either has never been
+  specified.
+
+  The config is modified to remember the new filename and passphrase.
+
+  The principal reason to permit specifying filename and passphrase is
+  to permit copying configs or changing passphrase.
+*/
 void Config::save(const string in_config_name, const string in_passphrase)
 {
         // Provide both arguments or neither
@@ -183,6 +215,7 @@ void Config::serialize(Archive &in_ar, const unsigned int in_version)
 
 string Config::staging_dir() const
 {
+        // FIXME    Is this even close to right except for testing, and even then?
         return string("/tmp/cryptar-") + getenv("HOME");
 }
 

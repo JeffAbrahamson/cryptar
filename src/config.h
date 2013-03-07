@@ -49,9 +49,22 @@ namespace cryptar {
                 fs_out          /* for internal use */
                 /* and eventually server-based methods (cryptard) */
         };
-        
 
-        std::shared_ptr<Config> make_config(const std::string &in_passphrase);
+        struct ConfigParam {
+                /*
+                  A structure for instantiating new Config's.
+                  We document the meaning of the entries in Config,
+                  since they are mostly passed through directly.
+                */
+                std::string m_config_name;
+                std::string m_passphrase;
+                std::string m_local_dir;
+                std::string m_remote_dir;
+                std::string m_remote_host;
+                TransportType m_transport_type;
+        };
+
+        std::shared_ptr<Config> make_config(const ConfigParam &param);
         std::shared_ptr<Config> make_config(const std::string &in_config_name,
                                             const std::string &in_passphrase);
         
@@ -66,13 +79,13 @@ namespace cryptar {
           (passphrases) into crypto keys?  Surely crypt.cpp.
         */
         class Config {
-                friend std::shared_ptr<Config> make_config(const std::string &in_passphrase);
+                friend std::shared_ptr<Config> make_config(const ConfigParam &params);
                 friend std::shared_ptr<Config> make_config(const std::string &in_config_name,
                                                            const std::string &in_passphrase);
                 
         private:
                 /* Make a new config. */
-                Config(const std::string &in_passphrase);
+                Config(const struct ConfigParam &param);
                 /* Load a config by name. */
                 Config(const std::string &in_config_name,
                        const std::string &in_passphrase);
