@@ -25,6 +25,7 @@
 #include <boost/test/unit_test.hpp>
 #include <pstreams/pstream.h>
 #include <string>
+#include <unordered_set>
 
 #include "cryptar.h"
 #include "test_text.h"
@@ -175,6 +176,12 @@ namespace {
                         BOOST_CHECK_EQUAL(filename.size(), 56);
                         BOOST_CHECK(filename.find("/") == string::npos);
                 }
+
+                // Empty string should yield a new random string each time
+                unordered_set<string> filenames;
+                for(int i = 0; i < 1000; ++i)
+                        filenames.emplace(filename_from_random_bits());
+                BOOST_CHECK_EQUAL(filenames.size(), 1000);
         }
 
 
