@@ -1,6 +1,4 @@
-#GCC = g++ -ggdb3 -Wall
 GCC = g++ -ggdb3 -Wall -std=c++0x
-# c++0x gives us rvalue references, most notably
 
 SRC = 				\
 	block.cpp		\
@@ -42,6 +40,14 @@ all : cryptar test TAGS
 cryptar : main.o $(HEADER) $(OBJECT) Makefile
 	$(GCC) -o cryptar main.o $(OBJECT) $(LIBS)
 
+libs : libcryptar.so libcryptar.a
+
+libcryptar.a : $(OBJECT)
+	ar rcs $@ $^
+
+libcryptar.so : $(OBJECT)
+	$(GCC) -shared -Wl,-soname,$@.1 -o $@.1.0.1 $^
+
 TESTS = 			\
 	block_test		\
 	compress_test		\
@@ -54,6 +60,9 @@ TESTS = 			\
 	root_test		\
 	transport_test		\
 
+TESTS_SH =		\
+	random.sh	\
+
 # For a more verbose test, try e.g.
 #    $ CRYPTAR_TEST_LOG_LEVEL=test_suite make test
 #    $ CRYPTAR_TEST_LOG_LEVEL=test_suite make crypt_test
@@ -62,6 +71,11 @@ test : $(TESTS)
 LOG_LEVEL=$(shell if [ $$CRYPTAR_TEST_LOG_LEVEL ]; then echo --log_level=$$CRYPTAR_TEST_LOG_LEVEL; fi)
 
 test_text.o : test_text.h
+
+# random.sh will compile random
+random : random.o
+	$(GCC) -o random random.o -L. -lcryptar $(LIBS)
+	./random.sh
 
 %_test : %_test.o test_text.o mode.o $(OBJECT)
 	$(GCC) -o $@ $^ $(TEST_LIBS) $(LIBS)
