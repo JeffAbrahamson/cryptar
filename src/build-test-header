@@ -1,5 +1,9 @@
 #!/bin/bash
 
+## Confirm that header files stand alone.
+## Users shouldn't really need to know in what order to include files.
+
+
 PATH=/usr/bin:/bin
 
 atexit() {
