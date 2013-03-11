@@ -51,7 +51,6 @@ namespace {
         };
         
 
-#if FIXME
         /*
           Queue some blocks for transfer.
           Their completion methods just print that they've been transferred.
@@ -61,30 +60,38 @@ namespace {
                 mode(Verbose, true);
                 mode(Testing, true);
                 mode(Threads, thread);
-                Communicator c(new NoTransport(Config("")));
-                string pass = ""; // doesn't matter here
 
-                // Start with 1 so that we can verify that ACT's have
-                // been initialized.
+                ConfigParam params;
+                params.m_passphrase = pseudo_random_string();
+                params.m_local_dir = "/tmp/cryptar-block-test-"
+                        + filename_from_random_bits();
+                params.m_transport_type = no_transport;
+                shared_ptr<Config> config = make_config(params);
+                
+                /*
+                  Start with 1 so that we can verify that ACT's have
+                  been initialized.  Since we've specified
+                  no_transport, we don't actually do anything with the
+                  data.  We're just testing that the ACT's are
+                  properly poked so that we know when all is done.
+                */
+                string pass = ""; // value doesn't matter, we're not moving data
                 for(int i = 1; i <= 10; i++) {
-                        //Block *bp = new Block(pass);
                         Block *bp = block_empty<Block>(pass);
                         bp->completion_action(new ACT_Print(i));
-                        c.push(bp);
+                        config->sender()->push(bp);
                 }
 
                 // process the communication queue, once if thread == false,
                 // completely otherwise.
                 if(thread)
-                        c.wait();
+                        config->sender()->wait();
                 else
-                        c();
+                        config->sender();
         }
-#endif
 }
 
 
-#if FIXME
 BOOST_AUTO_TEST_CASE(case_print_completion_one)
 {
         print_completion(false);
@@ -95,5 +102,4 @@ BOOST_AUTO_TEST_CASE(case_print_completion_thread)
 {
         print_completion(true);
 }
-#endif
 
