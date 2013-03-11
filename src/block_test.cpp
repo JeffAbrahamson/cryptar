@@ -48,6 +48,11 @@ namespace {
         void check_block_id()
         {
                 cout << "check_block_id()" << endl;
+                mode(Verbose, true);
+                mode(Testing, true);
+                mode(Threads, false);
+
+                cout << "check_block_id()" << endl;
                 BlockId b1, b2;
                 BOOST_CHECK(b1 != b2);
                 BOOST_CHECK(!(b1 == b2));
@@ -131,7 +136,7 @@ namespace {
         {
                 cout << "check_completion(" << thread << ")" << endl;
                 num_completions = 0;
-                //mode(Verbose, true);
+                mode(Verbose, true);
                 mode(Testing, true);
                 mode(Threads, thread);
                 
@@ -279,10 +284,8 @@ BOOST_AUTO_TEST_CASE(case_print_staging_one)
         check_staging(false);
 }
 
-#if FIXME
 BOOST_AUTO_TEST_CASE(case_print_staging_thread)
 {
-        check_staging(trueo);
+        check_staging(true);
 }
-#endif
 
