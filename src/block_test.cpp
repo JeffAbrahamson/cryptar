@@ -200,9 +200,6 @@ namespace {
                 {
                         shared_ptr<Config> config = make_config(params);
                         shared_ptr<Communicator> comm_send = config->sender();
-                        if(mkdir(params.m_local_dir.c_str(), 0700))
-                                throw_system_error("check_staging()");
-
                         shared_ptr<Communicator> c_send = config->sender();
 
                         // Start with 1 so that we can verify that ACT's have
@@ -277,12 +274,10 @@ BOOST_AUTO_TEST_CASE(case_print_completion_thread)
         check_completion(true);
 }
 
-#if FIXME
 BOOST_AUTO_TEST_CASE(case_print_staging_one)
 {
         check_staging(false);
 }
-#endif
 
 #if FIXME
 BOOST_AUTO_TEST_CASE(case_print_staging_thread)
