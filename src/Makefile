@@ -29,7 +29,7 @@ TEST_LIBS = 				\
 	-lboost_prg_exec_monitor	\
 	-lboost_unit_test_framework	\
 
-all : cryptar test TAGS
+all : TAGS test cryptar libs
 
 %.o : %.cpp cryptar.h
 	$(GCC) -c -fpic -o $@ $<
@@ -60,13 +60,11 @@ TESTS = 			\
 	root_test		\
 	transport_test		\
 
-TESTS_SH =		\
-	random.sh	\
-
 # For a more verbose test, try e.g.
 #    $ CRYPTAR_TEST_LOG_LEVEL=test_suite make test
 #    $ CRYPTAR_TEST_LOG_LEVEL=test_suite make crypt_test
 test : $(TESTS)
+	./random.sh
 
 LOG_LEVEL=$(shell if [ $$CRYPTAR_TEST_LOG_LEVEL ]; then echo --log_level=$$CRYPTAR_TEST_LOG_LEVEL; fi)
 
@@ -87,6 +85,7 @@ header_test :
 clean :
 	rm -f $(OBJECT) *.o *~ cryptar TAGS *_test tmp_h_test_*
 	rm -rf /tmp/cryptar-$LOGNAME-[0-9]*-[0-9]*
+	rm -f libcryptar.a libcryptar.so*
 
 TAGS : *cpp *h
 	etags *cpp *h
