@@ -39,8 +39,9 @@ namespace {
 
         void test_types()
         {
-                string passphrase = pseudo_random_string();
-                shared_ptr<Config> c = make_config(passphrase);
+                ConfigParam params;
+                params.m_passphrase = pseudo_random_string();
+                shared_ptr<Config> c = make_config(params);
 
                 /* We'll make transport objects directly (to make sure
                    the base class is correctly polymorphic) and
