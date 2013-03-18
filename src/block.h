@@ -120,8 +120,7 @@ namespace cryptar {
 
         /*
           Basic block, from which all blocks derive.
-          I don't think anything should need to instantiate this directly,
-          for which reason the constructors are protected.
+          Nothing instantiates this.
         */
         class Block {
                 // I don't think anything should need to instantiate this directly,
@@ -236,6 +235,9 @@ namespace cryptar {
                 }
 
 
+        // Cf. also config.h.  Config objects are blocks as well, but are sufficiently
+        // specialized they don't really belong here.
+
         /*
           A block that simply persists and restores itself (with encryption).
           It has no idea of internal structure.  It is a leaf node in the tree.
@@ -261,8 +263,9 @@ namespace cryptar {
         /*
           A block whose data is too big to push as a single chunk, so
           it computes a covering of smaller blocks.  This block's data
-          is the set of block id's and offsets that form the covering.
-          This block is what implements the cryptar algorithm.
+          is the set of block id's (pointing to DataBlocks) and
+          offsets that form the covering.  This block is what
+          implements the cryptar algorithm.
 
           Not implemented yet: If the covering is itself too large, we
           could store the covering in another CoverBlock and here
@@ -296,25 +299,16 @@ namespace cryptar {
         };
         
 
-        /*
-        class HeadBlock : public Block {
-        public:
-                HeadBlock(const CreateByContent,
-                          const std::string &in_crypto_key,
-                          const std::string &in_filename);
-                HeadBlock(const CreateById,
-                          const std::string &in_crypto_key,
-                          const BlockId &in_id);
-                virtual ~HeadBlock();
-        };
-        */
-
-
         typedef unsigned long WeakChecksum;
         typedef std::string StrongChecksum;
 
-        
-        class FileHeadBlock : public /*Head*/Block {
+
+        /*
+          Describe a file.  Contains file meta-information and
+          pointers to the contents.  Maybe this derives from
+          CoverBlock instead?
+        */
+        class FileBlock : public Block {
         public:
                 FileHeadBlock(const CreateByContent,
                               const std::string &in_crypto_key,
@@ -339,7 +333,12 @@ namespace cryptar {
         };
 
 
-        class DirectoryHeadBlock : public /*Head*/Block {
+        /*
+          Describes a directory.  Contains a map of filenames to
+          directory-level info about files and the block id's where
+          each file lies.
+        */
+        class DirectoryHeadBlock : public Block {
         public:
                 DirectoryHeadBlock(const CreateEmpty,
                                    const std::string &in_crypto_key);
@@ -367,7 +366,12 @@ namespace cryptar {
                 pipe = 8,              /* Not yet supported */
         };
 
-        // Is there really a difference between File and Directory TimelineBlock's ?
+
+        /*
+          Describe multiple revisions of a block.
+          This probably should be dropped, at least for now.
+          Doing everything gets heavy.
+        */
         class TimelineBlock : public Block {
         public:
                 struct HeadBlockPointer {
@@ -406,29 +410,6 @@ namespace cryptar {
                 // End persisted data
         };
         
-
-        // Obsolete, I think
-        /*
-        class FileTimelineBlock : public TimelineBlock {
-        public:
-                FileTimelineBlock(const CreateById, const BlockId &in_id);
-                virtual ~FileTimelineBlock();
-
-                void trim_by_date(time_t when);
-                void trim_by_count(int count);
-        };
-
-
-        class DirectoryTimelineBlock : public TimelineBlock {
-        public:
-                DirectoryTimelineBlock(const CreateByContent, const std::string &filename);
-                DirectoryTimelineBlock(const CreateById, const BlockId &in_id);
-                virtual ~DirectoryTimelineBlock();
-                
-                void trim_by_date(time_t when);
-                void trim_by_count(int count);
-        };
-        */
 }
 
 #endif  /* __BLOCK_H__*/
