@@ -7,3 +7,4 @@ cryptar
 TAGS
 src/cryptar
 src/random
+src/boost_test_examples
