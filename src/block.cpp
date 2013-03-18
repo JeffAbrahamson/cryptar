@@ -114,7 +114,10 @@ Block::~Block()
         // shouldn't happen).
         if(m_act_queue.empty())
                 return;
-        cerr << "ACT queue contains " << m_act_queue.size() << " objects at deletion.  (Expected zero.)" << endl;
+        cerr << "ACT queue contains "
+             << m_act_queue.size()
+             << " objects at deletion.  (Expected zero.)"
+             << endl;
         while(!m_act_queue.empty()) {
                 // Clean them up anyway
                 ACT_Base *act = m_act_queue.front();
