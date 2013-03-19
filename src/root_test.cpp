@@ -35,8 +35,18 @@ using namespace std;
 
 namespace {
 
+        // Tests to do:
+        // - root can persist itself and be fetched
+        // - add databases and fetch them
+        // - check that added db's are present, and that those not added are not
+
         void check_root()
         {
+                cout << "check_root()" << endl;
+                mode(Verbose, true);
+                mode(Testing, true);
+                mode(Threads, false);
+                
         }
 
 }

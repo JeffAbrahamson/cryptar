@@ -44,6 +44,7 @@ namespace cryptar {
           ACT that selects a Head object from a Timeline and queues
           fetching it.
         */
+#if 0
         class Timeline_HeadSelector : public ACT_Base {
                 // Select most recent Head less than or equal to time.
                 // If time is zero, select the most recent Head.
@@ -52,7 +53,7 @@ namespace cryptar {
 
                 virtual void operator()();
         };
-
+#endif
 
         /*
           ACT that fetches the blocks of a head object.
@@ -71,13 +72,15 @@ namespace cryptar {
         /*
           ACT that inserts a file into a filesystem object.
         */
+#if 0
         class Head_InsertFS : public ACT_Base  {
                 Head_InsertFS(/*Head*/Block *hb, FS_Node *fsn);
                 ~Head_InsertFS();
 
                 virtual void operator()();
         };
-
+#endif
+        
 
         /*
           ACT to note that a block has been fetched.

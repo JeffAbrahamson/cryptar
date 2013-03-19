@@ -17,7 +17,7 @@
   along with cryptar.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#if 0
 #include <map>
 #include <string>
 #include <vector>
@@ -145,5 +145,4 @@ unsigned int FileSystem::process_remote_tree_node(DirectoryHeadBlock *bp)
 {
 }
 
-
-
+#endif

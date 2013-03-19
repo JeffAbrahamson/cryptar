@@ -21,10 +21,13 @@
 
 #include <map>
 #include <string>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <vector>
 
 #include "cryptar.h"
 #include "test_text.h"
+#include "system.h"
 
 
 using namespace cryptar;
@@ -164,7 +167,23 @@ string cryptar::temp_file_name()
         const char *logname = getenv("LOGNAME");
         tmp_name_s << "/tmp/cryptar-"
                    << (logname ? logname : "unknown")
-                   << "-" << getpid() << "-" << time(0);
+                   << "-" << getpid() << "-" << time(0)
+                   << filename_from_random_bits();
         string tmp_name = tmp_name_s.str();
         return tmp_name;
+}
+
+
+/*
+  Provide the name of a temporary directory name.
+  Also create the directory.
+*/
+string cryptar::temp_dir_name()
+{
+        string dir_name(temp_file_name() + "/");
+        if(mkdir(dir_name.c_str(), 0700))
+                throw_system_error("temp_dir_name()");
+        // FIXME    (Error should indicate what happened and what name)
+        // FIXME    (The use of mkdir is repeated in the code, it should be done once)
+        return dir_name;
 }

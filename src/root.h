@@ -34,6 +34,30 @@
 namespace cryptar {
 
         class Root {
+                /*
+                  The root is a single block (no matter how large it
+                  gets, for the moment, though we could imagine making
+                  it compound if need really arises).  It is stored in
+                  the user's preferred archive, which could be local
+                  or could be remote.  It probably makes more sense
+                  for the root to be stored remotely, however, since
+                  the same cryptar data becomes available from all the
+                  user's cryptar instances if the root is remote.
+
+                  The config tells us how to find the root.
+
+                  The root tells us how to find everything else.
+
+                  Metaphorically, the root is a collection of configs.
+
+                  Conceptually, the root is a map from store names to
+                  information about those stores.
+
+                  There's some historical confusion in the code
+                  comments between store and database.  Properly, we
+                  should call them stores, since they are data stores.
+                  A data store is a set of (key, value) pairs.
+                */
         public:
                 Root(std::shared_ptr<Config> in_config);
                 ~Root();

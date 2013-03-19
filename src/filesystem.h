@@ -18,7 +18,7 @@
 */
 
 
-
+#define __FILESYSTEM_H__ 1      /* FIXME    temp hack */
 #ifndef __FILESYSTEM_H__
 #define __FILESYSTEM_H__ 1
 

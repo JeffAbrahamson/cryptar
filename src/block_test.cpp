@@ -30,6 +30,7 @@
 #include <sys/types.h>
 
 #include "cryptar.h"
+#include "system.h"
 #include "test_text.h"
 
 

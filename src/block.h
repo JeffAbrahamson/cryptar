@@ -165,8 +165,13 @@ namespace cryptar {
                 bool action_pending() const { return !m_act_queue.empty(); }
                 void completion_action(ACT_Base *);
                 void completion_action();
+                /* FIXME:    (Deprecate write() and read().) */
                 void write(const std::string &in_dir, bool flat = false) const;
                 void read(const std::string &in_dir, bool flat = false);
+                /* to_string() serializes the block and returns the string */
+                virtual const std::string to_stream() const { assert(0); };
+                /* from_string() sets the state of the block given a serialized version */
+                virtual void from_stream(const std::string &in_string) { assert(0); };
 
                 const BlockId &id() const { return m_id; }
                 
@@ -205,6 +210,7 @@ namespace cryptar {
           Block ID's and contents are both strings, so use factory
           functions to hide some notation.
           FIXME  (This is no longer true.  But probably still want factory functions.)
+          FIXME  (Should blocks be shared_ptr's?)
         */
         template<typename T> T *block_empty(const std::string &in_crypto)
                 {
@@ -253,8 +259,15 @@ namespace cryptar {
                 virtual ~DataBlock() {};
 
                 std::string plain_text() const;
-
                 void set_content(const std::string &in_contents);
+
+                /* to_stream() serializes the block and returns the string */
+                virtual const std::string to_stream() const
+                { return m_cipher_text; }
+                /* from_stream() sets the state of the block given a serialized version */
+                virtual void from_stream(const std::string &in_stream)
+                { m_cipher_text =in_stream; }
+
         private:
         };
         
@@ -302,7 +315,7 @@ namespace cryptar {
         typedef unsigned long WeakChecksum;
         typedef std::string StrongChecksum;
 
-
+#ifdef LATER
         /*
           Describe a file.  Contains file meta-information and
           pointers to the contents.  Maybe this derives from
@@ -409,7 +422,7 @@ namespace cryptar {
                 FileType m_file_type; /* requires support in FileSystem.cpp */
                 // End persisted data
         };
-        
+#endif  /* LATER */
 }
 
 #endif  /* __BLOCK_H__*/

@@ -39,7 +39,7 @@ using namespace std;
   The point is to provide synchronous requests.
 
   This class should eventually move to the join the other ACT_*
-  classes.
+  classes.  Or maybe it should become part of blocks.
 */
 class ACT_Synchronous : public ACT_Base {
 public:
@@ -78,6 +78,8 @@ Root::Root(shared_ptr<Config> in_config)
         : m_config(in_config)
 {
         if(!m_config->root_id().empty()) {
+                // The config knows a root id.  So we need to fetch
+                // the block and we're done.
                 get_from_remote();
                 return;
         }
@@ -90,12 +92,14 @@ Root::Root(shared_ptr<Config> in_config)
         // FIXME:  (Probably even Root should derive from Block and be related to DirectoryBlock.)
 
         // FIXME:  (Config has created a root block password on instantiation?)
+#if SOON
         DirectoryHeadBlock *bp = block_empty<DirectoryHeadBlock>(m_config->root_block_crypto_key());
         m_config->root_id(bp->id());
         // Persist the empty root synchronously so that if it fails the config doesn't get repersisted
         // with a root id that is invalid.
         push_to_remote(false);
         m_config->save();
+#endif
 }
 
 
@@ -115,6 +119,7 @@ BlockId Root::add_db(string &in_name)
         assert(m_dbs.find(in_name) == m_dbs.end()); // FIXME:  (Handle db-not-found error more gracefully.)
 
         string db_crypto_key = pseudo_random_string();
+#if SOON
         DirectoryHeadBlock *bp = block_empty<DirectoryHeadBlock>(db_crypto_key);
         m_config->sender()->push(bp);
         
@@ -122,6 +127,8 @@ BlockId Root::add_db(string &in_name)
         push_to_remote();
         assert(0);              // Confirm that this function is fully written
         return bp->id();
+#endif
+        return BlockId();
 }
 
 

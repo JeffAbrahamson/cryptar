@@ -27,6 +27,7 @@
 #include "compress.h"
 #include "config.h"
 #include "crypt.h"
+#include "system.h"
 
 
 using namespace cryptar;
@@ -37,19 +38,17 @@ using namespace std;
   On Playing with Blocks
 
   Blocks represent data that (potentially) exists in both the local
-  and remote stores.  Block id's identify the block in the remote
-  store as well as in the locally running process.
+  (cache) and remote stores.  Block id's identify the block in the
+  store as well as in the locally running process.  How we read and
+  write blocks from stores is abstracted in storage.h.
 
-  Instantiating a block by id causes it to be fetched from the local
-  store.  The flag m_status flag is BlockStatus::Invalid until the
-  fetch completes.  On successful fetch, m_status ==
-  BlockStatus::Ready, if the block is not found m_status ==
-  BlockStatus::NotFound.
+  Instantiating a block by id causes it to be fetched from the store.
+  The flag m_status flag is BlockStatus::Invalid until the fetch
+  completes.  On successful fetch, m_status == BlockStatus::Ready, if
+  the block is not found m_status == BlockStatus::NotFound.
 
   Instantiating a block by content causes a new id to be assigned and
-  the block to be pushed to the remote store.
-
-  To update a DataBlock, instantiate by id, then call SetContent().
+  the block to be persisted to the store.
 */
 
 
@@ -244,9 +243,11 @@ DataBlock::DataBlock(const CreateByContent,
 /*
   Create new based on ID.
   
-  Interpretting the encrypted data is left to those who derive from
-  DataBlock.  We have no idea what structure the data has, we can only
-  provide the plain text on request.
+  Interpretting the encrypted data is left to the client.  We have no
+  idea what structure the data has, we can only provide the plain text
+  on request.
+  
+  To update a DataBlock, instantiate by id, then call SetContent().
 */
 DataBlock::DataBlock(const CreateById,
                      const string &in_crypto_key,
@@ -368,15 +369,7 @@ CoverBlock::rsync_algo_sketch()
 */
 
 
-
-/******************************************************************************/
-/* HeadBlock */
-
-// No implementation currently needed for HeadBlock, just useful to
-// exist in the inheritance hierarchy.
-
-
-
+#ifdef LATER
 /******************************************************************************/
 /* FileHeadBlock */
 
@@ -462,4 +455,5 @@ DirectoryHeadBlock::DirectoryHeadBlock(const CreateById,
         // FIXME: should this be empty?
 }
 
+#endif  // LATER
 

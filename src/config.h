@@ -34,8 +34,6 @@
 
 namespace cryptar {
 
-        void throw_system_error(const std::string &label);
-        
         class Communicator;
         class Config;
         
@@ -80,7 +78,7 @@ namespace cryptar {
           FIXME Who is responsible for transforming passwords
           (passphrases) into crypto keys?  Surely crypt.cpp.
         */
-        class Config {
+        class Config /*: public Block */{
                 friend std::shared_ptr<Config> make_config(const ConfigParam &params);
                 friend std::shared_ptr<Config> make_config(const std::string &in_config_name,
                                                            const std::string &in_passphrase);

@@ -21,13 +21,9 @@
 
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE tests
-//#include <algorithm>
 #include <boost/test/unit_test.hpp>
-//#include <pstreams/pstream.h>
-//#include <string>
 
 #include "cryptar.h"
-#include "test_text.h"
 
 
 using namespace cryptar;

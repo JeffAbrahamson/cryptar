@@ -28,7 +28,6 @@
 #include <string>
 
 #include "cryptar.h"
-#include "test_text.h"
 
 
 using namespace cryptar;
@@ -85,7 +84,7 @@ namespace {
                 mode(Testing, true);
                 mode(Threads, threaded);
                 
-                // FIXME: Why  is this test here?  Should  it be here?
+                // FIXME: Why is this test here?  Should  it be here?
                 // Finish it somewhere, but probably in db_test.cpp.
         }
 #endif   
