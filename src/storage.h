@@ -24,51 +24,95 @@
 
 
 #include <memory>
+#include <string>
 
 
-class Block;
+namespace cryptar {
+
+        class Block;
 
 
-// FIXME:  StorageService probably needs to know about a Communicator
-class StorageService {
- public:
-        StorageService();
-        virtual ~StorageService();
+        // FIXME:  StorageService probably needs to know about a Communicator
+        class StorageService {
+        public:
+                StorageService();
+                virtual ~StorageService();
 
-        // Call to_stream on the block and write the result somewhere.
-        virtual void write(const std::shared_ptr<Block> in_block) = 0;
-        // Fetch the block's contents from somewhere, then call
-        // from_stream on the block.
-        virtual void read(std::shared_ptr<Block> in_block) = 0;
-};
+                // Call to_stream on the block and write the result somewhere.
+                virtual void write(const Block *in_block) = 0;
+                
+                // Fetch the block's contents from somewhere, then call
+                // from_stream on the block.
+                virtual void read(Block *in_block) = 0;
 
-
-class FileStorageService {
- public:
-        FileStorageService();
-        virtual ~FileStorageService();
-
-        // Write the serialized block to a file
-        virtual void write(const std::shared_ptr<Block> in_block);
-        // Read the serialized block from a file
-        virtual void read(std::shared_ptr<Block> in_block);
-};
+                // Remove block from store.
+                virtual void remove(const Block *in_block) const = 0;
+        };
 
 
-// FIXME    Implement this
-class NetStorageService {
- public:
-        NetStorageService();
-        virtual ~NetStorageService();
+        /*
+          Marshall between blocks and their persisted state on disk.
+          
+          FileStorageService uses the block id as filename.
+          
+          If, someday, we need to be fancier, which is quiet likely,
+          we should probably split into directories based on the first
+          couple characters of the block id.  It is even possible to
+          rebalance and/or to try multiple names (abcdefgh, then
+          ab/cdefgh) if we need to.
 
-        // Schedule the serialized block for transfer to a remote store
-        virtual void write(const std::shared_ptr<Block> in_block);
-        // Request the block be pulled from a remote store
-        virtual void read(std::shared_ptr<Block> in_block);
+          It would be nice to associate the block id with a sequence
+          number, but we don't want to give away too much information
+          about when blocks were created (although file creation time
+          is an awfully good hint, but it's a hint that gets obscured
+          as files are re-written).
 
-        // To find out if a transfer worked, call the block's ready() method.
-        // FIXME    or something like that
-};
+          The other problem with sequence id's is managing them
+          between different instances of the program and even usage
+          from different hosts.
+        */
+        class FileStorageService {
+        public:
+                FileStorageService(const std::string &in_base_path);
+                virtual ~FileStorageService();
 
+                // Write the serialized block to a file
+                virtual void write(const Block *in_block);
+                // Read the serialized block from a file
+                virtual void read(Block *in_block);
+                // Remove the file from the store
+                virtual void remove(const Block *in_block) const;
+
+        private:
+                const std::string block_to_filename(const Block *in_block) const;
+                
+                std::string m_base_path;
+        };
+
+
+        // FIXME    Implement this
+        /*
+          Marshall between blocks and their persisted state on the network.
+          
+          Where FileStorage Service stores to a file,
+          NetStorageService pushes to a communication stream.
+        */
+        class NetStorageService {
+        public:
+                NetStorageService();
+                virtual ~NetStorageService();
+
+                // Schedule the serialized block for transfer to a remote store
+                virtual void write(const Block *in_block);
+                // Request the block be pulled from a remote store
+                virtual void read(Block *in_block);
+                // Remove the file from the store
+                virtual void remove(const Block *in_block) const;
+
+                // To find out if a transfer worked, call the block's ready() method.
+                // FIXME    or something like that
+        };
+
+}
 
 #endif  /* __STORAGE_H__*/

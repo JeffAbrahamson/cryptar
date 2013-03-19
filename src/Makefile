@@ -9,6 +9,8 @@ SRC = 				\
 	db.cpp			\
 	mode.cpp		\
 	root.cpp		\
+	storage.cpp		\
+	system.cpp		\
 	transport.cpp		\
 
 
@@ -37,7 +39,7 @@ all : TAGS test cryptar libs
 %.o : %.cpp
 	$(GCC) -c -fpic -o $@ $<
 
-cryptar : main.o $(HEADER) $(OBJECT) Makefile
+cryptar : main.o $(HEADER) $(OBJECT) Makefile TAGS
 	$(GCC) -o cryptar main.o $(OBJECT) $(LIBS)
 
 libs : libcryptar.so libcryptar.a
@@ -58,6 +60,7 @@ TESTS = 			\
 	header_test		\
 	mode_test 		\
 	root_test		\
+	storage_test		\
 	transport_test		\
 
 # For a more verbose test, try e.g.
@@ -68,10 +71,10 @@ test : $(TESTS)
 
 LOG_LEVEL=$(shell if [ $$CRYPTAR_TEST_LOG_LEVEL ]; then echo --log_level=$$CRYPTAR_TEST_LOG_LEVEL; fi)
 
-test_text.o : test_text.h
+test_text.o : test_text.h TAGS
 
 # random.sh will compile random
-random : random.o
+random : random.o libcryptar.so
 	$(GCC) -o random random.o -L. -lcryptar $(LIBS)
 	./random.sh
 
@@ -89,6 +92,4 @@ clean :
 
 TAGS : *cpp *h
 	etags *cpp *h
-
-
 
