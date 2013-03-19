@@ -76,7 +76,6 @@ test_text.o : test_text.h TAGS
 # random.sh will compile random
 random : random.o libcryptar.so
 	$(GCC) -o random random.o -L. -lcryptar $(LIBS)
-	./random.sh
 
 %_test : %_test.o test_text.o mode.o $(OBJECT)
 	$(GCC) -o $@ $^ $(TEST_LIBS) $(LIBS)
