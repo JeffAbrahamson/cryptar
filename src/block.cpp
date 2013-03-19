@@ -228,6 +228,16 @@ string Block::id_to_pathname(const string &in_dir, bool flat) const
 /* DataBlock */
 
 /*
+  Create new and empty.
+*/
+DataBlock::DataBlock(const CreateEmpty,
+                     const string &in_crypto_key)
+        : Block(CreateEmpty(), in_crypto_key)
+{
+}
+
+
+/*
   Create new based on contents
 */
 DataBlock::DataBlock(const CreateByContent,

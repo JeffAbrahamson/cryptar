@@ -245,6 +245,8 @@ namespace cryptar {
         */
         class DataBlock : public Block {
         public:
+                DataBlock(const CreateEmpty,
+                          const std::string &in_crypto_key);
                 DataBlock(const CreateByContent,
                           const std::string &in_crypto_key,
                           const std::string &in_data);

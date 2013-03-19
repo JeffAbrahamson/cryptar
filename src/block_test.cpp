@@ -81,7 +81,7 @@ namespace {
 
 
         /*
-          Serialisation test.  Just serialise a block to a file and restore it.
+          Serialisation test.
         */
         void check_serialise()
         {
@@ -92,19 +92,11 @@ namespace {
                 
                 const string crypto_key(pseudo_random_string());
                 const string content(pseudo_random_string(100));
-                const string local_dir(temp_file_name());
-                //shared_ptr<Config> c = make_config(passphrase);
-                //c->local_dir(local_dir);
-                if(mkdir(local_dir.c_str(), 0700))
-                        throw_system_error("check_serialize()");
-
                 DataBlock *bp = block_by_content<DataBlock>(crypto_key, content);
-                bp->write(local_dir);
-                const BlockId id = bp->id();
                 BOOST_CHECK_EQUAL(content, bp->plain_text());
 
-                DataBlock *bp2 = block_by_id<DataBlock>(crypto_key, id);
-                bp2->read(local_dir);
+                DataBlock *bp2 = block_empty<DataBlock>(crypto_key);
+                bp2->from_stream(bp->to_stream());
                 BOOST_CHECK_EQUAL(content, bp2->plain_text());
         }
 
