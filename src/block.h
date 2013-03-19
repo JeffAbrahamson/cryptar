@@ -123,18 +123,13 @@ namespace cryptar {
           Nothing instantiates this.
         */
         class Block {
-                // I don't think anything should need to instantiate this directly,
-                // for which reason constructor and destructor should
-                // surely be protected.  But for the moment,
-                // communicate_test.cpp does, and I'm not yet sure what the best answer
-                // is.
         public:
                 enum BlockStatus {
                         block_status_invalid = 0x0,   // Block is being fetched, no data is valid
                         ready = 0x1,                  // Data is fetched, block may be used
                         dirty = 0x2,                  // Data has been modified but not yet synced
-                                                      // back to the remote store.
-                        not_found = 0x4,              // Block was not found in remote store
+                                                      // back to the store.
+                        not_found = 0x4,              // Block was not found in store
                 };
 
                 struct CreateEmpty {};
@@ -169,9 +164,9 @@ namespace cryptar {
                 void write(const std::string &in_dir, bool flat = false) const;
                 void read(const std::string &in_dir, bool flat = false);
                 /* to_string() serializes the block and returns the string */
-                virtual const std::string to_stream() const { assert(0); };
+                virtual const std::string to_stream() const = 0;
                 /* from_string() sets the state of the block given a serialized version */
-                virtual void from_stream(const std::string &in_string) { assert(0); };
+                virtual void from_stream(const std::string &in_string) = 0;
 
                 const BlockId &id() const { return m_id; }
                 

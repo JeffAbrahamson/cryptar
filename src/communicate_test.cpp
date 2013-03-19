@@ -73,7 +73,12 @@ namespace {
                 */
                 string pass = ""; // value doesn't matter, we're not moving data
                 for(int i = 1; i <= 10; i++) {
-                        Block *bp = block_empty<Block>(pass);
+                        /* We can't allocate a base block (it is
+                           abstract), so use DataBlock for our test,
+                           as it is simple and adds minimally to
+                           Block.
+                        */
+                        DataBlock *bp = block_by_content<DataBlock>(pass, string());
                         bp->completion_action(new ACT_Print(i));
                         config->sender()->push(bp);
                 }
