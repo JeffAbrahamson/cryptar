@@ -160,6 +160,7 @@ void Block::completion_action()
 }
 
 
+#if 0
 /*
   Write the cipher text to a file whose name is based on the block id.
   
@@ -210,6 +211,7 @@ void Block::read(const string &in_dir, bool flat)
         m_cipher_text = string(buffer, length);
         fs.close();
 }
+#endif
 
 
 string Block::id_to_pathname(const string &in_dir, bool flat) const

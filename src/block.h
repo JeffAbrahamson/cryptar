@@ -160,9 +160,11 @@ namespace cryptar {
                 bool action_pending() const { return !m_act_queue.empty(); }
                 void completion_action(ACT_Base *);
                 void completion_action();
+#if 0
                 /* FIXME:    (Deprecate write() and read().) */
                 void write(const std::string &in_dir, bool flat = false) const;
                 void read(const std::string &in_dir, bool flat = false);
+#endif
                 /* to_string() serializes the block and returns the string */
                 virtual const std::string to_stream() const = 0;
                 /* from_string() sets the state of the block given a serialized version */
