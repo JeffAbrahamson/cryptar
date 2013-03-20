@@ -44,7 +44,7 @@ namespace cryptar {
                 invalid_transport = 0, /* represents an error in type request */
                 base_transport,        /* can't be constructed, so an error, but here to be complete */
                 no_transport,
-                fs,             /* storage in filesystem */
+                fs,                    /* storage in filesystem */
                 /* and eventually server-based methods (cryptard) */
         };
 

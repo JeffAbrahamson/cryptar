@@ -41,7 +41,7 @@ using namespace std;
   Blocks represent data that (potentially) exists in both the local
   (cache) and remote stores.  Block id's identify the block in the
   store as well as in the locally running process.  How we read and
-  write blocks from stores is abstracted in storage.h.
+  write blocks from stores is abstracted in transport.h.
 
   Instantiating a block by id causes it to be fetched from the store.
   The flag m_status flag is BlockStatus::Invalid until the fetch

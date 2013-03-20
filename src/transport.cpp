@@ -149,7 +149,7 @@ void TransportFS::write(const Block *in_block) const
         ofstream fs(filename, ios_base::binary | ios_base::trunc);
         fs.write(payload.data(), payload.size());
         if(!fs)
-                throw_system_error("FileStorageService::write()");
+                throw_system_error("TransportFS::write()");
         fs.close();
 }
 

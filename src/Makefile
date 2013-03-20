@@ -9,7 +9,6 @@ SRC = 				\
 	db.cpp			\
 	mode.cpp		\
 	root.cpp		\
-	storage.cpp		\
 	system.cpp		\
 	transport.cpp		\
 
@@ -60,7 +59,6 @@ TESTS = 			\
 	header_test		\
 	mode_test 		\
 	root_test		\
-	storage_test		\
 	transport_test		\
 
 # For a more verbose test, try e.g.

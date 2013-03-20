@@ -131,11 +131,26 @@ namespace cryptar {
 
 
         /*
-          Write blocks to the file system.
-          The config will tell us where to write them.
-          The simplest use of TransportFSOut is when the
-          remote store is a remote file system.
-         */
+          Marshall between blocks and their persisted state on disk.
+          
+          TransportFS uses the block id as filename.
+          
+          If, someday, we need to be fancier, which is quiet likely,
+          we should probably split into directories based on the first
+          couple characters of the block id.  It is even possible to
+          rebalance and/or to try multiple names (abcdefgh, then
+          ab/cdefgh) if we need to.
+
+          It would be nice to associate the block id with a sequence
+          number, but we don't want to give away too much information
+          about when blocks were created (although file creation time
+          is an awfully good hint, but it's a hint that gets obscured
+          as files are re-written).
+
+          The other problem with sequence id's is managing them
+          between different instances of the program and even usage
+          from different hosts.
+        */
         class TransportFS : public Transport {
         protected:
                 /*
