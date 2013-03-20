@@ -166,6 +166,7 @@ namespace {
                 } else {
                         ;
                 }
+                clean_temp_dir(params.m_local_dir);
         }
         
 
@@ -243,6 +244,7 @@ namespace {
                 } else {
                         ;
                 }
+                clean_temp_dir(params.m_local_dir);
         }
 }
 
