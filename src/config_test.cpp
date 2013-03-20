@@ -61,22 +61,6 @@ namespace {
                 clean_temp_dir(params.m_local_dir);
         }
 
-
-#if 0
-        /*
-          Store data using the db interface, then recover the data.
-        */
-        void test_end_to_end(bool threaded)
-        {
-                cout << "  [db_end_to_end (" << (threaded ? "threaded" : "single-threaded") << ")]" << endl;
-                mode(Verbose, true);
-                mode(Testing, true);
-                mode(Threads, threaded);
-                
-                // FIXME: Why is this test here?  Should  it be here?
-                // Finish it somewhere, but probably in db_test.cpp.
-        }
-#endif   
 }
 
 
@@ -84,13 +68,3 @@ BOOST_AUTO_TEST_CASE(persist)
 {
         test_persist();
 }
-
-
-#if 0
-BOOST_AUTO_TEST_CASE(db_end_to_end)
-{
-        test_end_to_end(false);
-        test_end_to_end(true);
-}
-#endif
-
