@@ -210,7 +210,6 @@ string cryptar::temp_dir_name()
 void cryptar::clean_temp_dir(string &in_dir_name)
 {
         string command("rm -rf " + in_dir_name);
-        cout << "Executing:  " << command << endl;
         int ret = system(command.c_str());
         if(-1 == ret)
                 perror("  Failed to remove temp dir");
