@@ -21,6 +21,8 @@
 
 #include <map>
 #include <string>
+#include <stdio.h>
+#include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <vector>
@@ -161,14 +163,29 @@ map<string, pair<unsigned int, string> > cryptar::crypto_key_map()
   Provide the name of a temporary file that we can also use as a directory name.
   Which is why I'm not using mktemp() and its kin.
 */
-string cryptar::temp_file_name()
+string cryptar::temp_file_name() {
+        return temp_file_name(std::string());
+}
+
+
+
+/*
+  Provide the name of a temporary file that we can also use as a directory name.
+  Create it within the provided directory.
+*/
+string cryptar::temp_file_name(const string &in_dir_name)
 {
         ostringstream tmp_name_s;
-        const char *logname = getenv("LOGNAME");
-        tmp_name_s << "/tmp/cryptar-"
-                   << (logname ? logname : "unknown")
-                   << "-" << getpid() << "-" << time(0)
-                   << filename_from_random_bits();
+        if(in_dir_name.empty()) {
+                const char *logname = getenv("LOGNAME");
+                tmp_name_s << "/tmp/cryptar-"
+                           << (logname ? logname : "unknown")
+                           << "-" << getpid() << "-" << time(0)
+                           << filename_from_random_bits();
+        } else {
+                assert('/' == in_dir_name.back());
+                tmp_name_s << in_dir_name << filename_from_random_bits();
+        }
         string tmp_name = tmp_name_s.str();
         return tmp_name;
 }
@@ -187,3 +204,17 @@ string cryptar::temp_dir_name()
         // FIXME    (The use of mkdir is repeated in the code, it should be done once)
         return dir_name;
 }
+
+
+
+void cryptar::clean_temp_dir(string &in_dir_name)
+{
+        string command("rm -rf " + in_dir_name);
+        cout << "Executing:  " << command << endl;
+        int ret = system(command.c_str());
+        if(-1 == ret)
+                perror("  Failed to remove temp dir");
+        else if(0 != ret)
+                cout << "Removed temp dir but with non-zero return value: " << ret << endl;
+}
+

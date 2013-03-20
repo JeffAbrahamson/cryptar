@@ -49,7 +49,7 @@ namespace {
                 params.m_local_dir = temp_dir_name();
                 params.m_passphrase = pseudo_random_string();
 
-                const string filename(temp_file_name());
+                const string filename(temp_file_name(params.m_local_dir));
 
                 shared_ptr<Config> c = make_config(params);
                 c->save(filename, params.m_passphrase);
@@ -58,7 +58,7 @@ namespace {
                 // that we get this far without crashing.
                 BOOST_CHECK(true);
 
-                // FIXME: cleanup filename
+                clean_temp_dir(params.m_local_dir);
         }
 
 

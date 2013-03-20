@@ -39,7 +39,9 @@ namespace cryptar {
         std::map<std::string, std::string> orderly_text();
         std::map<std::string, std::pair<unsigned int, std::string> > crypto_key_map();
         std::string temp_file_name();
+        std::string temp_file_name(const std::string &in_dir_name);
         std::string temp_dir_name();
+        void clean_temp_dir(std::string &in_dir_name);
 
         
         struct Messages {

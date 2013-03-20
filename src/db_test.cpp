@@ -109,7 +109,7 @@ namespace {
                 mode(Verbose, true);
                 mode(Testing, true);
                 mode(Threads, thread);
-                const string staging_dir(temp_file_name());
+                const string staging_dir(temp_dir_name());
 
                 struct BlockNote {
                         BlockNote(const BlockId &in_id,
