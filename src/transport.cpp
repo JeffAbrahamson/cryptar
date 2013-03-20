@@ -18,12 +18,15 @@
 */
 
 
+#include <fstream>
 #include <sstream>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
 #include "config.h"
+#include "crypt.h"
+#include "system.h"
 #include "transport.h"
 
 
@@ -31,7 +34,7 @@ using namespace cryptar;
 using namespace std;
 
 
-
+#if 0
 /*
   Factory method to build transport objects from transport types.
 */
@@ -39,7 +42,7 @@ Transport *cryptar::make_transport(TransportType in_transport_type,
                                    const shared_ptr<Config> in_config)
 {
         switch(in_transport_type) {
-        case transport_invalid:
+        case invalid_transport:
                 {
                         // Why do I see an error if this block is not separately scoped?
                         ostringstream error_message("Unexpected transport type, ");
@@ -57,11 +60,7 @@ Transport *cryptar::make_transport(TransportType in_transport_type,
         case no_transport:
                 return new NoTransport(in_config);
         case fs:
-                throw(runtime_error("Transport type 'fs' is not valid here."));
-        case fs_out:
-                return new TransportFSOut(in_config);
-        case fs_in:
-                return new TransportFSIn(in_config);
+                return new TransportFS(in_config);
         }
         ostringstream error_message;
         error_message << "Unknown staging type, " << in_transport_type;
@@ -80,64 +79,112 @@ NoTransport *cryptar::make_no_transport(const std::shared_ptr<Config> config)
 }
 
 
-TransportFSOut *cryptar::make_transport_fsout(const std::shared_ptr<Config> config)
+TransportFS *cryptar::make_transport_fs(const std::shared_ptr<Config> config)
 {
-        return dynamic_cast<TransportFSOut *>(make_transport(fs_out, config));
+        return dynamic_cast<TransportFS *>(make_transport(fs, config));
 }
-
-
-TransportFSIn *cryptar::make_transport_fsin(const std::shared_ptr<Config> config)
-{
-        return dynamic_cast<TransportFSIn *>(make_transport(fs_in, config));
-}
-
-
-
-// FIXME  FSIn and FSOut are similar, refactor together
+#endif
 
 
 /*
-  Directory where we should stage files.
 */
-TransportFSOut::TransportFSOut(const shared_ptr<Config> in_config)
-        : Transport(in_config), m_local_dir(in_config->local_dir())
+TransportFS::TransportFS(const string &in_base_path)
+        : Transport(), m_base_path(in_base_path)
 {
-        if(!m_local_dir.empty() && mkdir(m_local_dir.c_str(), 0700) && EEXIST != errno) {
-                cerr << "  Error creating directory \""
-                     << m_local_dir << "\": " << strerror(errno) << endl;
-                throw(runtime_error("Failed to create staging directory."));
+        // base path, if provided, must end in '/'
+        if(!m_base_path.empty())
+                //assert('/' == *(m_base_path.end()--)); // FIXME    (OS-specific)
+                assert('/' == m_base_path.back()); // FIXME    (OS-specific)
+        if(!m_base_path.empty() && mkdir(m_base_path.c_str(), 0700) && EEXIST != errno)
+                throw_system_error("TransportFS::TransportFS()");
                 // FIXME:  should try harder (mkdir -p)
-        }
-}
-
-
-
-void TransportFSOut::operator()(Block *bp) const
-{
-        assert(bp);
-        bp->write(m_local_dir);
 }
 
 
 
 /*
-  Directory where we should stage files.
+  Return the name of the file in which this block's content should be
+  stored.
 */
-TransportFSIn::TransportFSIn(const shared_ptr<Config> in_config)
-        : Transport(in_config), m_local_dir(in_config->local_dir())
+const string TransportFS::block_to_filename(const Block *in_block) const
 {
-        if(!m_local_dir.empty() && mkdir(m_local_dir.c_str(), 0700) && EEXIST != errno) {
-                cerr << "  Error creating directory \""
-                     << m_local_dir << "\": " << strerror(errno) << endl;
-                throw(runtime_error("Failed to create staging directory."));
-                // FIXME:  should try harder (mkdir -p)
+        return m_base_path + message_digest(in_block->id().as_string(), true);
+}
+
+
+void TransportFS::read(Block *in_block) const
+{
+        string filename(block_to_filename(in_block));
+        ifstream fs(filename, ios_base::binary);
+        if(!fs) {
+                const size_t len = 1024; // arbitrary
+                char errstr[len];
+#if (_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && ! _GNU_SOURCE
+                perror(0);
+                cout << "(just called perror(0))" << "  errno=" << errno << endl;
+                cout << "filename=" << filename << endl;
+                if(strerror_r(errno, errstr, len))
+                        throw("strerror_r() error in Block::read() error");
+#else
+                strerror_r(errno, errstr, len);
+#endif
+                cerr << "Block read error: " << errstr << endl;
+                throw("Block::read()");
         }
+        fs.seekg(0, ios::end);
+        int length = fs.tellg();
+        fs.seekg(0, ios::beg);
+        char *buffer = new char[length];
+        fs.read(buffer, length);
+        string payload(buffer, length);
+        in_block->from_stream(payload);
+        fs.close();
 }
 
 
-
-void TransportFSIn::operator()(Block *bp) const
+void TransportFS::write(const Block *in_block) const
 {
-        assert(bp);
-        bp->read(m_local_dir);
+        const string filename(block_to_filename(in_block));
+        const string payload(in_block->to_stream());
+        ofstream fs(filename, ios_base::binary | ios_base::trunc);
+        fs.write(payload.data(), payload.size());
+        if(!fs)
+                throw_system_error("FileStorageService::write()");
+        fs.close();
 }
+
+
+
+#if 0    // for NetTransport
+/*
+  Provide a pointer to the receive queue (the object that requests
+  data from the remote store).
+*/
+shared_ptr<Communicator> Config::receiver()
+{
+        assert(m_receiver);
+        return m_receiver;
+}
+
+
+/*
+  Provide a pointer to the send queue (the object that pushes data to
+  the remote store).
+*/
+shared_ptr<Communicator> Config::sender()
+{
+        assert(m_sender);
+        return m_sender;
+}
+#endif
+
+
+/*
+  Serialize or deserialize according to context.
+*/
+template<class Archive>
+void Transport::serialize(Archive &in_ar, const unsigned int in_version)
+{
+        //in_ar & m_dbs;
+}
+

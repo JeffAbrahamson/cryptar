@@ -57,11 +57,10 @@ namespace {
                 mode(Testing, true);
                 mode(Threads, thread);
 
-                ConfigParam params;
+                ConfigParam params(no_transport);
                 params.m_passphrase = pseudo_random_string();
                 params.m_local_dir = "/tmp/cryptar-block-test-"
                         + filename_from_random_bits();
-                params.m_transport_type = no_transport;
                 shared_ptr<Config> config = make_config(params);
                 
                 /*
@@ -78,17 +77,20 @@ namespace {
                            as it is simple and adds minimally to
                            Block.
                         */
-                        DataBlock *bp = block_by_content<DataBlock>(pass, string());
+                        DataBlock *bp = block_by_content<DataBlock>(params.transport(),
+                                                                    pass,
+                                                                    string());
                         bp->completion_action(new ACT_Print(i));
-                        config->sender()->push(bp);
+                        //config->sender()->push(bp);
+                        bp->write();
                 }
 
                 // process the communication queue, once if thread == false,
                 // completely otherwise.
                 if(thread)
-                        config->sender()->wait();
+                        ;//config->sender()->wait();
                 else
-                        config->sender();
+                        ;//config->sender();
         }
 }
 

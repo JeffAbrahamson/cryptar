@@ -26,6 +26,7 @@
 #include <future>
 
 #include "block.h"
+#include "config.h"
 #include "communicate.h"
 #include "root.h"
 
@@ -73,82 +74,109 @@ typedef ACT_Synchronous_Promise<Block *> ACT_Block_Synchronous_Promise;
 typedef ACT_Synchronous_Promise<BlockId> ACT_BlockID_Synchronous_Promise; // Is this needed?
 
 
-
-Root::Root(shared_ptr<Config> in_config)
-        : m_config(in_config)
+/*
+  Create new and empty.
+*/
+RootBlock::RootBlock(const CreateEmpty,
+                     const shared_ptr<Transport> in_transport,
+                     const string &in_crypto_key)
+        : Block(CreateEmpty(), in_transport, in_crypto_key)
 {
-        if(!m_config->root_id().empty()) {
-                // The config knows a root id.  So we need to fetch
-                // the block and we're done.
-                get_from_remote();
-                return;
-        }
-        
-        // No root block has ever been persisted, we're starting from scratch.
-        // Make and persist an empty root block.  Then update and repersist config.
-        
-        // FIXME:  (Probably want DirectoryBlock.)
-        // FIXME:  (Probably eventually want choice of using head blocks or not.)
-        // FIXME:  (Probably even Root should derive from Block and be related to DirectoryBlock.)
-
-        // FIXME:  (Config has created a root block password on instantiation?)
-#if SOON
-        DirectoryHeadBlock *bp = block_empty<DirectoryHeadBlock>(m_config->root_block_crypto_key());
-        m_config->root_id(bp->id());
-        // Persist the empty root synchronously so that if it fails the config doesn't get repersisted
-        // with a root id that is invalid.
-        push_to_remote(false);
-        m_config->save();
-#endif
-}
-
-
-Root::~Root()
-{
-        // FIXME:  Implement
 }
 
 
 /*
-  Add the named db to the remote store.
-  It is an error to add a db that already exists.
-  Return the BlockId of the new db.
+  Create new based on contents
 */
-BlockId Root::add_db(string &in_name)
+RootBlock::RootBlock(const CreateByContent,
+                     const shared_ptr<Transport> in_transport,
+                     const string &in_crypto_key,
+                     const string &in_contents)
+        : Block(CreateEmpty(), in_transport, in_crypto_key)
 {
-        assert(m_dbs.find(in_name) == m_dbs.end()); // FIXME:  (Handle db-not-found error more gracefully.)
-
-        string db_crypto_key = pseudo_random_string();
-#if SOON
-        DirectoryHeadBlock *bp = block_empty<DirectoryHeadBlock>(db_crypto_key);
-        m_config->sender()->push(bp);
-        
-        m_dbs[in_name] = bp->id();
-        push_to_remote();
-        assert(0);              // Confirm that this function is fully written
-        return bp->id();
-#endif
-        return BlockId();
+        // FIXME    (This may not be needed.  Delete or implement.)
 }
 
 
 /*
-  Return the block pointer of the base of the named db.
+  Create new based on ID.
 */
-BlockId get_db(std::string &in_name)
+RootBlock::RootBlock(const CreateById,
+                     const shared_ptr<Transport> in_transport,
+                     const string &in_crypto_key,
+                     const BlockId &in_id)
+        : Block(CreateById(), in_transport, in_crypto_key, in_id)
 {
-        
-        // FIXME:  Implement
-        return BlockId();
+        // FIXME    (Implement)
+
+        /*
+          Never had a RootBlock, so this is new.
+          Make the block.
+          Then persist it (call save(.,.)).
+        */
 }
 
 
+RootBlock::~RootBlock()
+{
+        // FIXME    (Implement if needed.  Document.)
+}
+
+
+/*
+  Add the named store.
+  It is an error to add a store name that already exists.
+  Return a Transport for the new store.
+*/
+const shared_ptr<Transport> RootBlock::add_store(const string &in_name,
+                                                 const ConfigParam &param)
+{
+        // FIXME    (Handle not-found error more gracefully.)
+        assert(m_stores.find(in_name) == m_stores.end());
+        m_stores[in_name] = param.transport();
+        return param.transport();
+}
+
+
+/*
+  Return a transport to the named store.
+*/
+const shared_ptr<Transport> RootBlock::get_store(const string &in_name) const
+{
+        auto it = m_stores.find(in_name);
+        if(m_stores.end() == it)
+                assert(0);      // FIXME    (Handle this error)
+        return it->second;
+}
+
+
+void RootBlock::remove_store(const string &in_name)
+{
+        auto it = m_stores.find(in_name);
+        if(m_stores.end() == it)
+                assert(0);      // FIXME    (Handle this error)
+        m_stores.erase(it);
+}
+
+
+
+vector<string> RootBlock::stores() const
+{
+        vector<string> keys;
+        for(auto element : m_stores)
+                keys.push_back(element.first);
+        return keys;
+}
+
+
+
+#if 0
 /*
   Fetch the root block from the remote store.
   Populate our name to block id map (m_dbs).
   If this is called again, it acts as a refresh.
 */
-void Root::get_from_remote()
+void RootBlock::get_from_remote()
 {
         // FIXME  (I need a non-fetching create-by-id.)
         // FIXME  (The existing create-by-id functions are explicitly synchronous?)
@@ -172,7 +200,7 @@ void Root::get_from_remote()
 
   Asynchronous.
 */
-void Root::push_to_remote(const bool in_asynchronous) const
+void RootBlock::push_to_remote(const bool in_asynchronous) const
 {
         ostringstream big_text_stream;
         boost::archive::text_oarchive oa(big_text_stream);
@@ -183,14 +211,15 @@ void Root::push_to_remote(const bool in_asynchronous) const
         DataBlock *bp = block_by_id<DataBlock>(m_config->root_block_crypto_key(), m_config->root_id());
         m_config->sender()->push(bp);
 }
+#endif
 
 
 /*
   Serialize or deserialize according to context.
 */
 template<class Archive>
-void Root::serialize(Archive &in_ar, const unsigned int in_version)
+void RootBlock::serialize(Archive &in_ar, const unsigned int in_version)
 {
-        in_ar & m_dbs;
+        in_ar & m_stores;
 }
 

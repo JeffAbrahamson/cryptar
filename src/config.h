@@ -34,93 +34,97 @@
 
 namespace cryptar {
 
-        class Communicator;
         class Config;
-        
+        class RootBlock;
+        class Transport;
         
         /* Types for config objects (config.h) */
         // Do not renumber members of this enum.  Values are persisted in config.
         enum TransportType {
-                transport_invalid = 0, /* represents an error in type request */
+                invalid_transport = 0, /* represents an error in type request */
                 base_transport,        /* can't be constructed, so an error, but here to be complete */
                 no_transport,
-                fs,             /* for constructing */
-                fs_in,          /* for internal use */
-                fs_out          /* for internal use */
+                fs,             /* storage in filesystem */
                 /* and eventually server-based methods (cryptard) */
         };
 
-        struct ConfigParam {
+        class ConfigParam {
                 /*
                   A structure for instantiating new Config's.
                   We document the meaning of the entries in Config,
                   since they are mostly passed through directly.
                 */
+        public:
+                ConfigParam(TransportType in_transport)
+                        : m_transport_type(in_transport) {
+                        assert(invalid_transport != m_transport_type);
+                }
                 std::string m_config_name;
                 std::string m_passphrase;
                 std::string m_local_dir;
                 std::string m_remote_dir;
                 std::string m_remote_host;
                 TransportType m_transport_type;
+
+                const std::shared_ptr<Transport> transport() const;
+
+        private:
+                const std::shared_ptr<Transport> make_transport() const;
+
+                mutable std::shared_ptr<Transport> m_transport;
         };
 
+#if 0
         std::shared_ptr<Config> make_config(const ConfigParam &param);
         std::shared_ptr<Config> make_config(const std::string &in_config_name,
                                             const std::string &in_passphrase);
-        
-        /*
-          What to back up.
-          Where to put it.
-          How to get it there.
+#endif
 
-          FIXME  Distinguish between a password and a crypto key.  (The former is the user's idea.)
-          
-          FIXME Who is responsible for transforming passwords
-          (passphrases) into crypto keys?  Surely crypt.cpp.
+        /*
+          The RootConfig tells us how to find (or store) the RootBlock.
+
+          There is only one RootConfig.  It should be stored locally,
+          generally this means in the filesystem.  We can create a new
+          one, persist (or re-persist) it, and instantiate an existing
+          one from its file.
+
+          It's only useful function is root(), which synchronously
+          fetches and returns the root block (or creates a new root
+          block and returns that).  If it creates a new root block, it
+          persists it before returning it.
+
+          The root block may exist in the file system or on the net.
+
+          Cf. root.h / root.cpp for more about RootBlock's.
         */
-        class Config /*: public Block */{
+
+        /*
+          FIXME   (Distinguish between a password and a crypto key.
+                   The former is the user's idea.)
+          
+          FIXME   (Who is responsible for transforming passwords (passphrases) into crypto keys?
+                   Surely crypt.cpp.)
+        */
+        class Config {
+                /*
                 friend std::shared_ptr<Config> make_config(const ConfigParam &params);
                 friend std::shared_ptr<Config> make_config(const std::string &in_config_name,
                                                            const std::string &in_passphrase);
-                
-        private:
+                */
+        public:
                 /* Make a new config. */
-                Config(const struct ConfigParam &param);
+                Config(const ConfigParam &param);
                 /* Load a config by name. */
                 Config(const std::string &in_config_name,
                        const std::string &in_passphrase);
 
-        public:
-                // Do I store the key or require it here?
-                void save(const std::string in_name = std::string(),
-                          const std::string in_passphrase = std::string());
+                // Persist the Config to a file.
+                void save();
+                void save(const std::string &in_name,
+                          const std::string &in_passphrase);
+                // Fetch the RootBlock (or create) and return.
+                std::shared_ptr<RootBlock> root();
 
-                //// Begin accessors /////////////////////////////////////
-                const std::string &local_dir() const { return m_local_dir; };
-                void local_dir(const std::string &in) { m_local_dir = in; };
-
-                const std::string &remote_dir() const { return m_remote_dir; };
-                void remote_dir(const std::string &in) { m_remote_dir = in; };
-
-                const std::string &remote_host() const { return m_remote_host; };
-                void remote_host(const std::string &in) { m_remote_host = in; };
-
-                /* The only reason to set the passphrase is if the
-                   user wants to change password.  This may not be the
-                   right interface for this, then.  Probably just want
-                   a "change_passphrase" function that takes old and
-                   new passphrases and returns a bool?
-                 */
-                //const std::string &crypto_key() const { return m_crypto_key; };
-                void crypto_key(const std::string &in) { m_crypto_key = in; };
-
-                /*
-                  // I think this should be private, maybe not even stored.
-                  // We just need it to create the two comm channels.
-                const TransportType &transport_type() const { return m_transport_type; };
-                void transport_type(const TransportType &in) { m_transport_type = in; };
-                */
-                
         private:
                 /* We need to be able to create a root block from the
                    config so that when we create a config, we can
@@ -130,63 +134,36 @@ namespace cryptar {
                    Letting the client create the root would risk the
                    config not knowing about the root.
                 */
-                friend class Root;
                 const BlockId root_id() const { return m_root_id; };
                 void root_id(const BlockId &in_id) { m_root_id = in_id; save(); }
-                const std::string &root_block_crypto_key() const;
                 
-        public:
-                //// End accessors ///////////////////////////////////////
-
-                // FIXME   (do I really need both of these here?)
-                // FIXME   (perhaps just one comm thread for sending, the other is private)
-                std::shared_ptr<Communicator> receiver();
-                std::shared_ptr<Communicator> sender();
-                
-                // FIXME  (are these three needed?)
-                std::string staging_dir() const;
-                std::string push_to_remote() const;
-                std::string pull_from_remote() const;
-
         private:
                 //// Begin persisted data ////////////////////////////////
-                // If we store blocks locally, this is where we store them.
-                std::string m_local_dir;
-                // If we store blocks remotely, this is where they go on the remote host.
-                // This may or may not be at the client's discretion, perhaps we'll insist
-                // on a server.
-                std::string m_remote_dir;
-                // If we store blocks remotely, this is the host to which we should connect.
-                std::string m_remote_host;
+                
+                // This is how we will communicate with the store.
+                std::shared_ptr<Transport> m_transport;
 
-                /* Crypto key for saving the config. */
-                /* FIXME: don't leave this as clear text in case of core dump */
-                /* FIXME  do we even need to store this? */
-                /* The user's pass phrase transforms to a crypto key
-                   that lets us decrypt the config file (from which we
-                   destreamed a config object).
-                */
-                std::string m_crypto_key;
-                // This is how we will communicate with the remote store.
-                enum TransportType m_transport_type;
-
-                // How to find the first block, which points to
-                // whatever filesystems and db's there are in the
-                // remote store.
+                // How to find the RootBlock (cf. root.h)
                 BlockId m_root_id;
                 std::string m_root_crypto_key;
                 
                 //// End persisted data //////////////////////////////////
 
                 std::string m_config_name;
-                std::shared_ptr<Communicator> m_receiver;
-                std::shared_ptr<Communicator> m_sender;
-                
+                /* Crypto key for saving the config.
+
+                   The user's pass phrase transforms to a crypto key
+                   that lets us decrypt the config file (from which we
+                   destreamed a config object).
+                */
+                std::string m_crypto_key;
+
                 friend class boost::serialization::access;
                 template<class Archive>
                         void serialize(Archive &ar, const unsigned int version);
         };
 
+        std::shared_ptr<Config> make_config(const ConfigParam &param);
 }
 
 #endif  /* __CONFIG_H__*/

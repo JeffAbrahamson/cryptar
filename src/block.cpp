@@ -28,6 +28,7 @@
 #include "config.h"
 #include "crypt.h"
 #include "system.h"
+#include "transport.h"
 
 
 using namespace cryptar;
@@ -63,31 +64,14 @@ using namespace std;
 /******************************************************************************/
 /* Block */
 
-Block::Block(const CreateEmpty, const string &in_crypto_key)
-        : m_crypto_key(in_crypto_key),
-          m_status(BlockStatus::ready | BlockStatus::dirty)
-{
-        m_id = pseudo_random_string();
-}
-
-
-Block::Block(const CreateEmpty, const string &in_crypto_key, string &in_persist_dir)
+Block::Block(const CreateEmpty,
+             const shared_ptr<Transport> in_transport,
+             const string &in_crypto_key)
         : m_crypto_key(in_crypto_key),
           m_status(BlockStatus::ready | BlockStatus::dirty),
-          m_persist_dir(in_persist_dir)
+          m_transport(in_transport)
 {
         m_id = pseudo_random_string();
-}
-
-
-
-/*
-  Fetch based on block id
-*/
-Block::Block(const CreateById, const string &in_crypto_key, const BlockId &in_id)
-        : m_crypto_key(in_crypto_key), m_id(in_id), m_status(BlockStatus::block_status_invalid)
-{
-        // Here trigger fetch from remote
 }
 
 
@@ -95,13 +79,13 @@ Block::Block(const CreateById, const string &in_crypto_key, const BlockId &in_id
   Fetch based on block id
 */
 Block::Block(const CreateById,
+             const shared_ptr<Transport> in_transport,
              const string &in_crypto_key,
-             const BlockId &in_id,
-             string &in_persist_dir)
+             const BlockId &in_id)
         : m_crypto_key(in_crypto_key),
           m_id(in_id),
           m_status(BlockStatus::block_status_invalid),
-          m_persist_dir(in_persist_dir)
+          m_transport(in_transport)
 {
         // Here trigger fetch from remote
 }
@@ -160,6 +144,25 @@ void Block::completion_action()
 }
 
 
+void Block::write() const
+{
+        // FIXME    (set status here)
+        m_transport->write(this);
+        // FIXME    (and then transport should call the ACT to set status when done)
+}
+
+
+void Block::read()
+{
+        // FIXME    (set status here)
+        m_transport->read(this);
+        // So m_id is set.  The contents will be fetched and then
+        // something has to call from_stream() and then call the ACT
+        // to set the status correctly.
+}
+
+
+
 #if 0
 /*
   Write the cipher text to a file whose name is based on the block id.
@@ -214,6 +217,7 @@ void Block::read(const string &in_dir, bool flat)
 #endif
 
 
+#if 0
 string Block::id_to_pathname(const string &in_dir, bool flat) const
 {
         boost::filesystem::path filename;
@@ -224,6 +228,7 @@ string Block::id_to_pathname(const string &in_dir, bool flat) const
                 filename /= boost::filesystem::path(in_dir) / filename_for_id;
         return filename.string();
 }
+#endif
 
 
 /******************************************************************************/
@@ -233,8 +238,9 @@ string Block::id_to_pathname(const string &in_dir, bool flat) const
   Create new and empty.
 */
 DataBlock::DataBlock(const CreateEmpty,
+                     const shared_ptr<Transport> in_transport,
                      const string &in_crypto_key)
-        : Block(CreateEmpty(), in_crypto_key)
+        : Block(CreateEmpty(), in_transport, in_crypto_key)
 {
 }
 
@@ -243,9 +249,10 @@ DataBlock::DataBlock(const CreateEmpty,
   Create new based on contents
 */
 DataBlock::DataBlock(const CreateByContent,
+                     const shared_ptr<Transport> in_transport,
                      const string &in_crypto_key,
                      const string &in_contents)
-        : Block(CreateEmpty(), in_crypto_key)
+        : Block(CreateEmpty(), in_transport, in_crypto_key)
 {
         string augmented_content = pseudo_random_string(11) + in_contents;
         m_cipher_text = encrypt(compress(augmented_content), m_crypto_key);
@@ -262,9 +269,10 @@ DataBlock::DataBlock(const CreateByContent,
   To update a DataBlock, instantiate by id, then call SetContent().
 */
 DataBlock::DataBlock(const CreateById,
+                     const shared_ptr<Transport> in_transport,
                      const string &in_crypto_key,
                      const BlockId &in_id)
-        : Block(CreateById(), in_crypto_key, in_id)
+        : Block(CreateById(), in_transport, in_crypto_key, in_id)
 {
 }
 
@@ -303,9 +311,10 @@ static const unsigned int m_window_size = 512;
   Create new based on contents
 */
 CoverBlock::CoverBlock(const CreateByContent,
-                     const string &in_crypto_key,
-                     const string &in_contents)
-        : DataBlock(CreateByContent(), in_crypto_key, in_contents),
+                       const shared_ptr<Transport> in_transport,
+                       const string &in_crypto_key,
+                       const string &in_contents)
+        : DataBlock(CreateByContent(), in_transport, in_crypto_key, in_contents),
           m_base(0), m_base_length(0)
 {
         // Steps for creating by contents:
@@ -321,9 +330,10 @@ CoverBlock::CoverBlock(const CreateByContent,
   Create new based on ID
 */
 CoverBlock::CoverBlock(const CreateById,
+                       const shared_ptr<Transport> in_transport,
                        const string &in_crypto_key,
                        const BlockId &in_id)
-        : DataBlock(CreateById(), in_crypto_key, in_id), m_base(0), m_base_length(0)
+        : DataBlock(CreateById(), in_transport, in_crypto_key, in_id), m_base(0), m_base_length(0)
 {
         // To create by id, we fetch the block with an ACT that
         // populates m_easy_checksums and m_crypto_checksums.  It is

@@ -27,6 +27,7 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/serialization/string.hpp>
 #include <map>
+#include <memory>
 #include <set>
 #include <stdexcept>
 #include <string>
@@ -38,6 +39,9 @@
 
 namespace cryptar {
 
+        class Transport;
+
+        
         /* ************************************************************ */
         /* BlockId */
 
@@ -132,39 +136,32 @@ namespace cryptar {
                         not_found = 0x4,              // Block was not found in store
                 };
 
+                // Signal to create an empty Block.  Client will fill in the details.
                 struct CreateEmpty {};
+                // Signal to create a Block with a given id.  Must then fetch using a Transport.
                 struct CreateById {};
+                // Signal to create a new Block with content.  May then be persisted.
                 struct CreateByContent{};
                 
                 // create empty (for use by derived classes)
                 Block(const CreateEmpty,
+                      const std::shared_ptr<Transport> in_transport,
                       const std::string &in_crypto);
-                Block(const CreateEmpty,
-                      const std::string &in_crypto,
-                      std::string &in_persist_dir);
-                /*
-                // create new based on contents
-                Block(const std::string &in_crypto, const std::string &in_contents);
-                */
                 // fetch based on block id
                 Block(const CreateById,
+                      const std::shared_ptr<Transport> in_transport,
                       const std::string &in_crypto_key,
                       const BlockId &in_id);
-                Block(const CreateById,
-                      const std::string &in_crypto_key,
-                      const BlockId &in_id,
-                      std::string &in_persist_dir);
                 virtual ~Block();
 
         public:                 /* most should be protected? */
                 bool action_pending() const { return !m_act_queue.empty(); }
                 void completion_action(ACT_Base *);
                 void completion_action();
-#if 0
-                /* FIXME:    (Deprecate write() and read().) */
-                void write(const std::string &in_dir, bool flat = false) const;
-                void read(const std::string &in_dir, bool flat = false);
-#endif
+
+                void write() const;
+                void read();
+
                 /* to_string() serializes the block and returns the string */
                 virtual const std::string to_stream() const = 0;
                 /* from_string() sets the state of the block given a serialized version */
@@ -179,20 +176,8 @@ namespace cryptar {
                 BlockStatus m_status;           /* status of this block */
 
         private:
-                /*
-                  When we are asked to persist, we are handed a
-                  directory to which we should persist.  A staging
-                  object may desire that blocks distribute themselves
-                  in a hierarchy, in which case write() is called with
-                  flat == false.  Then we use m_persist_dir in
-                  addition to the staging directory requested by the
-                  caller of write().
-                */
-                const std::string m_persist_dir;
-
                 std::queue<ACT_Base *> m_act_queue;
-
-                std::string id_to_pathname(const std::string &in_dir, bool flat) const;
+                std::shared_ptr<Transport> m_transport;
         };
         typedef Block::BlockStatus BlockStatus;
         
@@ -209,37 +194,24 @@ namespace cryptar {
           FIXME  (This is no longer true.  But probably still want factory functions.)
           FIXME  (Should blocks be shared_ptr's?)
         */
-        template<typename T> T *block_empty(const std::string &in_crypto)
+        template<typename T> T *block_empty(const std::shared_ptr<Transport> in_transport,
+                                            const std::string &in_crypto)
                 {
-                        return new T(Block::CreateEmpty(), in_crypto);
+                        return new T(Block::CreateEmpty(), in_transport, in_crypto);
                 }
 
-        template<typename T> T *block_by_content(const std::string &in_crypto,
+        template<typename T> T *block_by_content(const std::shared_ptr<Transport> in_transport,
+                                                 const std::string &in_crypto,
                                                  const std::string &in_content)
                 {
-                        return new T(Block::CreateByContent(), in_crypto, in_content);
+                        return new T(Block::CreateByContent(), in_transport, in_crypto, in_content);
                 }
-        template<typename T> T *block_by_content(const std::string &in_crypto,
-                                                 const std::string &in_content,
-                                                 const std::string &in_persist_dir)
-                {
-                        return new T(Block::CreateByContent(), in_crypto, in_content, in_persist_dir);
-                }
-        template<typename T> T *block_by_id(const std::string &in_crypto,
+        template<typename T> T *block_by_id(const std::shared_ptr<Transport> in_transport,
+                                            const std::string &in_crypto,
                                             const BlockId &in_id)
                 {
-                        return new T(Block::CreateById(), in_crypto, in_id);
+                        return new T(Block::CreateById(), in_transport, in_crypto, in_id);
                 }
-        template<typename T> T *block_by_id(const std::string &in_crypto,
-                                            const BlockId &in_id,
-                                            const std::string &in_persist_dir)
-                {
-                        return new T(Block::CreateById(), in_crypto, in_id, in_persist_dir);
-                }
-
-
-        // Cf. also config.h.  Config objects are blocks as well, but are sufficiently
-        // specialized they don't really belong here.
 
         /*
           A block that simply persists and restores itself (with encryption).
@@ -248,11 +220,14 @@ namespace cryptar {
         class DataBlock : public Block {
         public:
                 DataBlock(const CreateEmpty,
+                          const std::shared_ptr<Transport> in_transport,
                           const std::string &in_crypto_key);
                 DataBlock(const CreateByContent,
+                          const std::shared_ptr<Transport> in_transport,
                           const std::string &in_crypto_key,
                           const std::string &in_data);
                 DataBlock(const CreateById,
+                          const std::shared_ptr<Transport> in_transport,
                           const std::string &in_crypto_key,
                           const BlockId &id);
                 virtual ~DataBlock() {};
@@ -286,9 +261,11 @@ namespace cryptar {
         class CoverBlock : public DataBlock {
         public:
                 CoverBlock(const CreateByContent,
+                           const std::shared_ptr<Transport> in_transport,
                           const std::string &in_crypto_key,
                           const std::string &in_data);
                 CoverBlock(const CreateById,
+                           const std::shared_ptr<Transport> in_transport,
                           const std::string &in_crypto_key,
                           const BlockId &in_id);
                 //virtual ~CoverBlock();

@@ -167,10 +167,11 @@ void Communicator::comm_batch()
         }
         // FIXME:  Call transport pre and post appropriately
         //m_transport->pre();
+        // FIXME    (This only matters for network transport.  But fix it.)
         for_each(blocks_to_stage.begin(),
                  blocks_to_stage.end(),
-                 //bind1st(mem_fun(&Transport::transport), m_transport));
-                 ref(*m_transport));
+                 bind1st(mem_fun(&Transport::write), m_transport));
+                 //ref(*m_transport));
         //m_transport->post();
         for_each(blocks_to_stage.begin(),
                  blocks_to_stage.end(),

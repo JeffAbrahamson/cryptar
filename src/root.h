@@ -33,49 +33,61 @@
 
 namespace cryptar {
 
-        class Root {
-                /*
-                  The root is a single block (no matter how large it
-                  gets, for the moment, though we could imagine making
-                  it compound if need really arises).  It is stored in
-                  the user's preferred archive, which could be local
-                  or could be remote.  It probably makes more sense
-                  for the root to be stored remotely, however, since
-                  the same cryptar data becomes available from all the
-                  user's cryptar instances if the root is remote.
+        /*
+          The RootBlock contains a map of store names to Transport's.
 
-                  The config tells us how to find the root.
+          There is only one RootBlock.  It is not part of RootConfig
+          because it is reasonable that the user has multiple hosts
+          that should all have the same view of the world.  It is also
+          reasonable that multiple users have the same view of the
+          world.  Creating a RootConfig pointing to an existing
+          RootBlock sets up that view.
 
-                  The root tells us how to find everything else.
+          All the Transport's do is tell us how to fetch and store
+          blocks for the given store.  A single root (RootBlock) may
+          refer to multiple stores, each with different access
+          methods.
 
-                  Metaphorically, the root is a collection of configs.
+          The root is a single block (no matter how large it gets, for
+          the moment, though we could imagine making it compound if
+          need really arises).  It is persisted to a store as defined
+          by the Config (cf. config.h), which could be the filesystem
+          or could be on the network.  It probably makes more sense
+          for the root to be stored on the network, however, since the
+          same cryptar data becomes available from all the user's
+          cryptar instances if the root is remote.
 
-                  Conceptually, the root is a map from store names to
-                  information about those stores.
+          The Config tells us how to find the root.
 
-                  There's some historical confusion in the code
-                  comments between store and database.  Properly, we
-                  should call them stores, since they are data stores.
-                  A data store is a set of (key, value) pairs.
-                */
+          The root tells us how to find everything else.
+
+          A data store is conceptually a set of (key, value) pairs.
+        */
+        class RootBlock : public Block {
         public:
-                Root(std::shared_ptr<Config> in_config);
-                ~Root();
+                RootBlock(const CreateEmpty,
+                          const std::shared_ptr<Transport> in_transport,
+                          const std::string &in_crypto_key);
+                RootBlock(const CreateByContent,
+                          const std::shared_ptr<Transport> in_transport,
+                          const std::string &in_crypto_key,
+                          const std::string &in_data);
+                RootBlock(const CreateById,
+                          const std::shared_ptr<Transport> in_transport,
+                          const std::string &in_crypto_key,
+                          const BlockId &id);
+                ~RootBlock();
 
-                BlockId add_db(std::string &in_name);
-                BlockId get_db(std::string &in_name);
-
-                // Maybe some day offer to remove db's.
-                // Maybe some day offer to query what db's there are.
+                const std::shared_ptr<Transport> add_store(const std::string &in_name,
+                                                           const ConfigParam &param);
+                const std::shared_ptr<Transport> get_store(const std::string &in_name) const;
+                void remove_store(const std::string &in_name);
+                std::vector<std::string> stores() const;
 
         private:
-                void get_from_remote();
-                void push_to_remote(const bool in_asynchronous = true) const;
-                
-                std::shared_ptr<Config> m_config;
-                /* m_dbs is a map of db names to the block id of the root of the named db. */
-                /* FIXME  (Actually needs to be map of name to (block id of db, crypto key of db) */
-                std::map<std::string, BlockId> m_dbs;
+                //// Begin persisted data ////////////////////////////////
+                std::map<std::string, std::shared_ptr<Transport> > m_stores;
+                //// End persisted data //////////////////////////////////
                 
                 friend class boost::serialization::access;
                 template<class Archive>

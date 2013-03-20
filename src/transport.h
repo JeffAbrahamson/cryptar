@@ -36,6 +36,21 @@ namespace cryptar {
                                   const std::shared_ptr<Config> in_config);
 
         /*
+          A Transport tells us how to access a store.
+
+          The access might be via the local filesystem, or it might be
+          network-based.  Network-based stores could, in principle,
+          have different storage and access models.  For example, we
+          might have a custom network store for cryptar, but then also
+          a network store that works with AWS or that uses scp
+          transfer.
+
+          It contains some parameters and exports a rather simple
+          interface.  It may be synchronous (filesystem or network in
+          test mode) or asynchronous.
+        */
+
+        /*
           The base transport class does nothing (i.e., no transport).
           Nonetheless, for testing we'll trivially derive from the
           base class so that a programming error that slices to the
@@ -43,9 +58,13 @@ namespace cryptar {
         */
         class Transport {
         protected:
+                Transport() {};
+                // FIXME    (Config constructor unneeded?)
+                /*
                 Transport(const std::shared_ptr<Config> in_config) {};
                 friend Transport *cryptar::make_transport(TransportType in_transport_type,
                                                           const std::shared_ptr<Config> in_config);
+                */
                 
         public:
                 virtual ~Transport() {};
@@ -60,9 +79,15 @@ namespace cryptar {
                 virtual void pre() const {};
                 
                 /*
-                  An action to transport a block.
+                  An action to read or write data.
+                  For file transport, this is likely a synchronous read or write.
+                  For network transport, this is likely a queuing operation
+                  (for read, queuing a request for in_block->id).
+                  Either way, the Block's ACT probably sets status
+                  (in the network case, once we get the ACK back).
                 */
-                virtual void operator()(Block *bp) const {};
+                virtual void read(Block *in_block) const = 0;
+                virtual void write(const Block *in_block) const = 0;
                 
                 /*
                   An action to take after all blocks are transported.
@@ -71,11 +96,13 @@ namespace cryptar {
                 */
                 virtual void post() const {};
                 
-        //protected:
-                //std::shared_ptr<Config> m_config;
+        private:
+                friend class boost::serialization::access;
+                template<class Archive>
+                        void serialize(Archive &ar, const unsigned int version);
         };
 
-        Transport *make_transport(const std::shared_ptr<Config> config);
+        //Transport *make_transport(const std::shared_ptr<Config> config);
         
 
         /*
@@ -86,20 +113,21 @@ namespace cryptar {
         */
         class NoTransport : public Transport {
         protected:
+                /*
                 NoTransport(const std::shared_ptr<Config> in_config)
                         : Transport(in_config) {};
                 friend Transport *cryptar::make_transport(TransportType in_transport_type,
                                                           const std::shared_ptr<Config> in_config);
-
+                */
+                
         public:
                 virtual TransportType transport_type() { return no_transport; }
 
-                virtual void pre() const {};
-                virtual void operator()(Block *bp) const {};
-                virtual void post() const {};
+                virtual void read(Block *in_block) const {};
+                virtual void write(const Block *in_block) const {};
         };
 
-        NoTransport *make_no_transport(const std::shared_ptr<Config> config);
+        //NoTransport *make_no_transport(const std::shared_ptr<Config> config);
 
 
         /*
@@ -108,58 +136,45 @@ namespace cryptar {
           The simplest use of TransportFSOut is when the
           remote store is a remote file system.
          */
-        class TransportFSOut : public Transport {
+        class TransportFS : public Transport {
         protected:
-                TransportFSOut(const std::shared_ptr<Config> in_config);
+                /*
+                TransportFS(const std::shared_ptr<Config> in_config);
                 friend Transport *cryptar::make_transport(TransportType in_transport_type,
                                                           const std::shared_ptr<Config> in_config);
-
+                */
         public:
-                virtual ~TransportFSOut() {};
+                TransportFS(const std::string &in_base_path);
+                virtual ~TransportFS() {};
 
-                virtual TransportType transport_type() { return fs_out; }
+                virtual TransportType transport_type() { return fs; }
 
-                virtual void pre() const {};
-                virtual void operator()(Block *bp) const;
-                virtual void post() const {};
+                virtual void read(Block *in_block) const;
+                virtual void write(const Block *in_block) const;
+
         private:
-                const std::string m_local_dir;
+                const std::string block_to_filename(const Block *in_block) const;
+                
+                std::string m_base_path;
         };
 
-        TransportFSOut *make_transport_fsout(const std::shared_ptr<Config> config);
-
-        
-        /*
-          Read blocks from the file system.
-          The config will tell us where to find them.
-          The simplest use of TransportFSIn is when the
-          remote store is a remote file system.
-         */
-        class TransportFSIn : public Transport {
-        protected:
-                TransportFSIn(const std::shared_ptr<Config> in_config);
-                friend Transport *cryptar::make_transport(TransportType in_transport_type,
-                                                          const std::shared_ptr<Config> in_config);
-
-        public:
-                virtual ~TransportFSIn() {};
-
-                virtual TransportType transport_type() { return fs_in; }
-
-                virtual void pre() const {};
-                virtual void operator()(Block *bp) const;
-                virtual void post() const {};
-        private:
-                const std::string m_local_dir;
-        };
-
-        TransportFSIn *make_transport_fsin(const std::shared_ptr<Config> config);
+        //TransportFS *make_transport_fs(const std::shared_ptr<Config> config);
 
         
         // FIXME:  We'll also want TransportTLSIn and TransportTLSOut.
         //         They will require a wire protocol.  Cf. ../dev/comm.txt.
         
 }
+
+
+#if 0
+                // From Config.  Belongs in NetTransport
+                std::shared_ptr<Communicator> m_receiver;
+                std::shared_ptr<Communicator> m_sender;
+                
+                std::shared_ptr<Communicator> receiver();
+                std::shared_ptr<Communicator> sender();
+#endif
 
 
 #endif  /* __TRANSPORT_H__*/
